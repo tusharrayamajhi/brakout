@@ -1,0 +1,1069 @@
+{
+  "name": "payment success redirect",
+  "nodes": [
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "payment",
+          "mode": "list",
+          "cachedResultName": "payment"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "transaction_uuid",
+              "value": "={{ $json.query.txid }}"
+            },
+            {
+              "column": "payment_method",
+              "value": "={{ $json.query.method }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        260,
+        -160
+      ],
+      "id": "9615a815-24a2-4cd6-8936-b9607b10d080",
+      "name": "create payment for solana",
+      "credentials": {
+        "mySql": {
+          "id": "0tvKzNUeqcKioMoj",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "payment",
+          "mode": "list",
+          "cachedResultName": "payment"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "transaction_uuid",
+              "value": "={{ $json.query.data }}"
+            },
+            {
+              "column": "payment_method",
+              "value": "={{ $json.query.method }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        260,
+        40
+      ],
+      "id": "63438078-f007-4d44-b00f-3d7a0be347cd",
+      "name": "create payment for esewa",
+      "credentials": {
+        "mySql": {
+          "id": "0tvKzNUeqcKioMoj",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "payment",
+          "mode": "list",
+          "cachedResultName": "payment"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "transaction_uuid",
+              "value": "={{ $json.query.session_id }}"
+            },
+            {
+              "column": "payment_method",
+              "value": "={{ $json.query.method }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        260,
+        240
+      ],
+      "id": "22f18130-061d-44ee-9f67-6a3e0594b118",
+      "name": "create payment for stripe",
+      "credentials": {
+        "mySql": {
+          "id": "0tvKzNUeqcKioMoj",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "payment",
+          "mode": "list",
+          "cachedResultName": "payment"
+        },
+        "limit": 1,
+        "where": {
+          "values": [
+            {
+              "column": "payment_method",
+              "value": "={{ $('Switch according to the payment gateway esewa stripe solana').item.json.query.method }}"
+            },
+            {
+              "column": "transaction_uuid",
+              "value": "={{ $('Switch according to the payment gateway esewa stripe solana').item.json.query.txid }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        480,
+        -160
+      ],
+      "id": "d1702b9f-a5b3-40c7-b7bd-90bc69dfe682",
+      "name": "get payment",
+      "credentials": {
+        "mySql": {
+          "id": "0tvKzNUeqcKioMoj",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "payment",
+          "mode": "list",
+          "cachedResultName": "payment"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "payment_method",
+              "value": "={{ $('Switch according to the payment gateway esewa stripe solana').item.json.query.method }}"
+            },
+            {
+              "column": "transaction_uuid",
+              "value": "={{ $('Switch according to the payment gateway esewa stripe solana').item.json.query.data }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        480,
+        40
+      ],
+      "id": "b5daf73f-2f4e-4870-8307-41869eac7508",
+      "name": "get payment1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mySql": {
+          "id": "0tvKzNUeqcKioMoj",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "payment",
+          "mode": "list",
+          "cachedResultName": "payment"
+        },
+        "limit": 1,
+        "where": {
+          "values": [
+            {
+              "column": "payment_method",
+              "value": "={{ $('Switch according to the payment gateway esewa stripe solana').item.json.query.method }}"
+            },
+            {
+              "column": "transaction_uuid",
+              "value": "={{ $('Switch according to the payment gateway esewa stripe solana').item.json.query.session_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        480,
+        240
+      ],
+      "id": "7a50d99b-dbd7-4a77-9d20-751fd59cea42",
+      "name": "get payment2",
+      "credentials": {
+        "mySql": {
+          "id": "0tvKzNUeqcKioMoj",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": {
+          "__rl": true,
+          "value": "orders",
+          "mode": "list",
+          "cachedResultName": "orders"
+        },
+        "dataMode": "defineBelow",
+        "columnToMatchOn": "id",
+        "valueToMatchOn": "={{ $('Switch according to the payment gateway esewa stripe solana').item.json.query.order_id }}",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "paymentId",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        700,
+        40
+      ],
+      "id": "ffbace0e-449d-4331-8dea-de20a9612093",
+      "name": "update order1",
+      "credentials": {
+        "mySql": {
+          "id": "0tvKzNUeqcKioMoj",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": {
+          "__rl": true,
+          "value": "orders",
+          "mode": "list",
+          "cachedResultName": "orders"
+        },
+        "dataMode": "defineBelow",
+        "columnToMatchOn": "id",
+        "valueToMatchOn": "={{ $('Switch according to the payment gateway esewa stripe solana').item.json.query.order_id }}",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "paymentId",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {
+          "detailedOutput": true
+        }
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        700,
+        240
+      ],
+      "id": "d1321b61-a0ad-4b32-851c-cd7427ce7555",
+      "name": "update order2",
+      "credentials": {
+        "mySql": {
+          "id": "0tvKzNUeqcKioMoj",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1828,
+        -40
+      ],
+      "id": "00b798bb-773c-4279-beec-f55e94de4ade",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Switch according to the payment gateway esewa stripe solana').item.json.query.userId }}",
+        "sessionTTL": 86400000,
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        1948,
+        -40
+      ],
+      "id": "7fbfa38c-45d3-4a46-a4b1-100846568214",
+      "name": "Redis Chat Memory",
+      "credentials": {
+        "redis": {
+          "id": "JdMon8acMSYTUpTt",
+          "name": "Redis chat history database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1828,
+        460
+      ],
+      "id": "c3bc5e36-8dca-4935-860c-7b74b9132778",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Switch according to the payment gateway esewa stripe solana').item.json.query.userId }}",
+        "sessionTTL": 86400000,
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        1948,
+        460
+      ],
+      "id": "64bbf5e4-bd8f-41ce-bee6-82c89d1eb69a",
+      "name": "Redis Chat Memory1",
+      "credentials": {
+        "redis": {
+          "id": "JdMon8acMSYTUpTt",
+          "name": "Redis chat history database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "shipping",
+          "mode": "list",
+          "cachedResultName": "shipping"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "orderId",
+              "value": "={{ $('Switch according to the payment gateway esewa stripe solana').item.json.query.orderId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        1140,
+        40
+      ],
+      "id": "0c6005e0-f950-49ac-a328-4e231bf72b11",
+      "name": "shipping details",
+      "credentials": {
+        "mySql": {
+          "id": "0tvKzNUeqcKioMoj",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "business",
+          "mode": "list",
+          "cachedResultName": "business"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "id",
+              "value": "={{ $('Switch according to the payment gateway esewa stripe solana').item.json.query.businessId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        1360,
+        40
+      ],
+      "id": "6c6c716f-48ab-4073-83a8-5acaa84367af",
+      "name": "business details",
+      "credentials": {
+        "mySql": {
+          "id": "0tvKzNUeqcKioMoj",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "social_page",
+          "mode": "list",
+          "cachedResultName": "social_page"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "id",
+              "value": "={{ $('get customer data').item.json.socialPageId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        1580,
+        40
+      ],
+      "id": "a3c0701e-22b7-4c1a-a0e1-f294823869bf",
+      "name": "page details",
+      "credentials": {
+        "mySql": {
+          "id": "0tvKzNUeqcKioMoj",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Accessing the message using the expression\nconst message =$input.first().json.output\n\n// Returning the stringified message\nreturn [\n  {\n    json: {\n      message: JSON.stringify(message),\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2176,
+        240
+      ],
+      "id": "eda88c79-11e1-400f-a813-e828301f5437",
+      "name": "convert to raw json5"
+    },
+    {
+      "parameters": {
+        "path": "3dfb292b-9497-444d-8259-9f91d2c7b2ae/success",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -180,
+        40
+      ],
+      "id": "dbd0d112-a24e-465e-9e0d-122da1c5b729",
+      "name": "Webhook for payment sucess",
+      "webhookId": "3dfb292b-9497-444d-8259-9f91d2c7b2ae"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.query.method }}",
+                    "rightValue": "solana",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "3ba14dc6-5298-4be4-bbd9-d0ac575199c0"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "64b6a844-352c-4d96-b8db-fdb1b6af5135",
+                    "leftValue": "={{ $json.query.method }}",
+                    "rightValue": "esewa",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ba6ce049-3fb6-4095-b1f7-1c061570b64c",
+                    "leftValue": "={{ $json.query.method }}",
+                    "rightValue": "stripe",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        40,
+        40
+      ],
+      "id": "c988b4a6-1676-48de-8744-c12ab9f335a6",
+      "name": "Switch according to the payment gateway esewa stripe solana"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "customer",
+          "mode": "list",
+          "cachedResultName": "customer"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "id",
+              "value": "={{ $('Switch according to the payment gateway esewa stripe solana').item.json.query.userId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        920,
+        40
+      ],
+      "id": "d245744c-c737-4f07-8565-1e0e3e6c41fd",
+      "name": "get customer data",
+      "credentials": {
+        "mySql": {
+          "id": "0tvKzNUeqcKioMoj",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=payment have successfully received from the customer send message that paymett received using following details generate email in text:\nmethod:{{ $('Switch according to the payment gateway esewa stripe solana').item.json.query.method }}\norder id: {{ $('Switch according to the payment gateway esewa stripe solana').item.json.query.orderId }}\nbusiness name: {{ $('business details').item.json.name }}\nshipping address : {{ $('shipping details').item.json.shippingAddress }}\nphone {{ $('shipping details').item.json.phone }}\ncustomer name: {{ $('get customer data').item.json.fullName }}\ngenerate email for the for purchaching from us\n\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1800,
+        -260
+      ],
+      "id": "7b4a74cd-4dbc-4da2-a851-6f767da3bb6c",
+      "name": "email writing ai agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=payment have successfully received from the customer send message that paymet received using following details generate a message for messagner in text:\nmethod:{{ $('Switch according to the payment gateway esewa stripe solana').item.json.query.method }}\norder id: {{ $('Switch according to the payment gateway esewa stripe solana').item.json.query.orderId }}\nbusiness name: {{ $('business details').item.json.name }}\nshipping address : {{ $('shipping details').item.json.shippingAddress }}\nphone {{ $('shipping details').item.json.phone }}\ncustomer name: {{ $('get customer data').item.json.fullName }}\ngenerate message for successfully received the payment and thank you for purchaching from us\n\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1800,
+        240
+      ],
+      "id": "02dd7144-697f-448c-b7e9-086824c01a43",
+      "name": "success message writer for messagner"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('shipping details').item.json.email }}",
+        "subject": "=thank you for order {{ $('get customer data').item.json.fullName }}",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2176,
+        -160
+      ],
+      "id": "88bc3f99-dc5b-4d16-aeab-37a52c4ec0c1",
+      "name": "send Gmail to customer",
+      "webhookId": "e5a1de3d-fd33-4e03-bc05-e80641a04b89",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "E9FNbMXv3SNXOBsD",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/me/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('page details').item.json.accessToken}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "recipient",
+              "value": "={\"id\":\"{{ $('get customer data').item.json.id }}\"} "
+            },
+            {
+              "name": "message",
+              "value": "={\"text\":{{ $json.message }}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2396,
+        240
+      ],
+      "id": "52f095eb-866f-43e5-80fe-39fecfecd106",
+      "name": "send text message in messager to customer"
+    },
+    {
+      "parameters": {
+        "content": "## this workflow received a success full payment redirect and send a email to customer and also send a message to customer via messenger",
+        "height": 620,
+        "width": 640
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        920,
+        -720
+      ],
+      "id": "541489e7-c5f8-4a5e-837d-4d1585c9bd68",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": {
+          "__rl": true,
+          "value": "orders",
+          "mode": "list",
+          "cachedResultName": "orders"
+        },
+        "dataMode": "defineBelow",
+        "columnToMatchOn": "id",
+        "valueToMatchOn": "={{ $('Switch according to the payment gateway esewa stripe solana').item.json.query.orderId }}",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "paymentId",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        700,
+        -160
+      ],
+      "id": "93fc55b5-d5a8-4492-ab0f-4fe18be10cff",
+      "name": "update order",
+      "credentials": {
+        "mySql": {
+          "id": "0tvKzNUeqcKioMoj",
+          "name": "MySQL account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "create payment for solana": {
+      "main": [
+        [
+          {
+            "node": "get payment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get payment": {
+      "main": [
+        [
+          {
+            "node": "update order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create payment for esewa": {
+      "main": [
+        [
+          {
+            "node": "get payment1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create payment for stripe": {
+      "main": [
+        [
+          {
+            "node": "get payment2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get payment1": {
+      "main": [
+        [
+          {
+            "node": "update order1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get payment2": {
+      "main": [
+        [
+          {
+            "node": "update order2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "email writing ai agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "email writing ai agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update order1": {
+      "main": [
+        [
+          {
+            "node": "get customer data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update order2": {
+      "main": [
+        [
+          {
+            "node": "get customer data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "success message writer for messagner",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "success message writer for messagner",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "shipping details": {
+      "main": [
+        [
+          {
+            "node": "business details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "business details": {
+      "main": [
+        [
+          {
+            "node": "page details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "page details": {
+      "main": [
+        [
+          {
+            "node": "email writing ai agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "success message writer for messagner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "convert to raw json5": {
+      "main": [
+        [
+          {
+            "node": "send text message in messager to customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook for payment sucess": {
+      "main": [
+        [
+          {
+            "node": "Switch according to the payment gateway esewa stripe solana",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch according to the payment gateway esewa stripe solana": {
+      "main": [
+        [
+          {
+            "node": "create payment for solana",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "create payment for esewa",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "create payment for stripe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get customer data": {
+      "main": [
+        [
+          {
+            "node": "shipping details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "email writing ai agent": {
+      "main": [
+        [
+          {
+            "node": "send Gmail to customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "success message writer for messagner": {
+      "main": [
+        [
+          {
+            "node": "convert to raw json5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update order": {
+      "main": [
+        [
+          {
+            "node": "get customer data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "411cac93-760e-4b12-88de-ec352231d0b2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "520b2025d3e00572af5d55e8006b754a1d00333adb783fa4ede95c17d3d0662a"
+  },
+  "id": "jV8kW0dD8QXoktWJ",
+  "tags": []
+}

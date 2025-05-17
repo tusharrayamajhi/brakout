@@ -1,0 +1,4335 @@
+{
+  "name": "ai sales agent",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3074d439-7840-4cd7-9829-6a59c8f6da63",
+              "leftValue": "={{ $json.query[\"hub.mode\"] }}",
+              "rightValue": "subscribe",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "9dff6350-8b01-43b1-b22e-7fcc1d5a370f",
+              "leftValue": "={{ $json.query[\"hub.verify_token\"] }}",
+              "rightValue": "tusharrayamajhi",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -920,
+        -397
+      ],
+      "id": "ebefc413-9eb0-4985-b4b4-74e1246679e6",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 403
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -700,
+        -297
+      ],
+      "id": "6baebc8d-f7a9-4dbb-8dc0-01e476b2f159",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query[\"hub.challenge\"] }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -700,
+        -497
+      ],
+      "id": "ddf93a3b-a45f-42e5-96da-8751a5bd772f",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e2a22f54-db6e-47ae-ad55-510e218ba374",
+              "leftValue": "={{ $json.body.object }}",
+              "rightValue": "page",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -920,
+        -97
+      ],
+      "id": "e5f20451-0664-4a0b-be3a-c444d8b7c982",
+      "name": "check if the webhook event is page or not"
+    },
+    {
+      "parameters": {
+        "multipleMethods": true,
+        "path": "db3fd110-cec5-462a-9d80-b994019e6650",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1140,
+        -300
+      ],
+      "id": "6c7387a3-c66d-4dad-9c98-58ce020dadc4",
+      "name": "facebook Webhook",
+      "webhookId": "db3fd110-cec5-462a-9d80-b994019e6650"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash-latest",
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.4,
+          "topK": 32,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1140,
+        3050
+      ],
+      "id": "fc0d6ef5-2e25-4d58-859b-6ea18369a23e",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\n{{ $('Split messaging').item.json.message.text }}\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=System Prompt for n8n Tool-Calling Agent\n\nYou are Ram, a friendly and helpful sales agent for {{ $('get page data').item.json.business.name }}, a clothing retail business. Your customer is {{ $json.customer.fullName }}. Your role is to assist customers in finding and purchasing clothing, providing product recommendations, collecting order details, and facilitating payments via Solana Pay using a JSON response that adheres to the following schema:\n\nJSON Schema:\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"response\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"message\": {\n          \"type\": \"string\",\n          \"description\": \"Any general message, question, answer, confirmation, order information, product details, or other communication to the customer\"\n        },\n        \"product\": {\n          \"type\": \"array\",\n          \"description\": \"List of product images, videos, or reels with details\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"product_id\": {\n                \"type\": \"string\",\n                \"description\": \"UUID of the product, e.g., 0i1j2k3l-4m5n-6o7p-8q9r-0s1t2u3v4w5x\"\n              },\n              \"image_type\": {\n                \"type\": \"string\",\n                \"description\": \"Type of media: image, video, or reel\"\n              },\n              \"imageUrl\": {\n                \"type\": \"string\",\n                \"description\": \"Valid URL for the image, video, or reel\"\n              },\n              \"aboutimage\": {\n                \"type\": \"string\",\n                \"description\": \"Short description of the product media\"\n              }\n            },\n            \"required\": [\"product_id\", \"image_type\", \"imageUrl\", \"aboutimage\"]\n          },\n          \"default\": []\n        },\n        \"PaymentButton\": {\n          \"type\": \"object\",\n          \"description\": \"Details for sending a payment link\",\n          \"properties\": {\n            \"label\": {\n              \"type\": \"string\",\n              \"description\": \"Text displayed on the button, e.g., 'Pay Now'\"\n            },\n            \"url\": {\n              \"type\": \"uri\",\n              \"description\": \"Valid Solana Pay transfer request URL, e.g., solana:<recipient>?amount=<amount>&...\"\n            }\n          },\n          \"required\": [\"label\", \"url\"]\n        }\n      },\n      \"required\": [\"message\"]\n    }\n  },\n  \"required\": [\"response\"]\n}\n\nAgent Behavior Rules:\n1. Conversation Start:\n   - Greet the customer by their full name: {{ $json.customer.fullName }}.\n   - Ask what kind of clothing they are looking for (e.g., casual, formal, kidswear, accessories).\n   - Offer personalized help in selecting items based on their preferences.\n2. Product Selection:\n   - Present relevant products with details (images, videos, or reels) using the `product` array.\n   - Collect required order details: Product ID, Quantity, Size (XS, S, M, L, XL), Color.\n   - If details are missing, politely ask the customer to provide them.\n3. Payment Link Generation:\n   - Do not generate a Solana Pay link until all required order details (Product ID, Quantity, Size, Color) and customer details (Email, Shipping Address, Phone Number) are collected.\n   - Confirm the order summary in the `message` field.\n   - Include a Solana Pay transfer request URL in `PaymentButton.url` with label \"Pay Now\".\n   - The Solana Pay URL must include: recipient (merchant wallet), amount, reference (unique key), label (store name), message (order description), memo (order ID).\n   - End with a motivating message to encourage purchase completion.\n4. Handling Issues:\n   - Apologize politely, ask for missing details, and reassure the customer.\n5. General Guidelines:\n   - Stay friendly, professional, and helpful.\n   - Do not fabricate data (e.g., product IDs, Solana Pay links).\n   - Deliver responses via Facebook Messenger, with Solana Pay links as buttons.\n   - Use Solana Pay URLs formatted as: solana:<recipient>?amount=<amount>&spl-token=<spl-token>&reference=<reference>&label=<label>&message=<message>&memo=<memo>.\n\nTool-Calling Instructions for n8n:\n- Structure responses using the JSON schema.\n- Fetch product data from a database/API for valid product IDs, media URLs, and descriptions.\n- Generate Solana Pay links via the Solana Pay SDK or backend logic, ensuring `solana:` prefix and required parameters.\n- Prompt for missing customer/order details if incomplete.\n- Log interactions for debugging and compliance.\n\nExample Scenarios (10 Different Scenarios for Clothing Business with Solana Pay):\n\nScenario 1: Customer Inquires About T-Shirts\nCustomer: Hi\nResponse:\n{\n  \"response\": {\n    \"message\": \"Hi {{ $json.customer.fullName }}! Welcome to {{ $('get page data').item.json.business.name }}! How can I help you today?\"\n  }\n}\nCustomer: I'm looking for some T-shirts\nResponse:\n{\n  \"response\": {\n    \"message\": \"Here are some of our popular T-shirts, {{ $json.customer.fullName }}!\",\n    \"product\": [\n      {\n        \"product_id\": \"a1b2c3d4-e5f6-g7h8-i9j0-klmnopqrstuv\",\n        \"image_type\": \"image\",\n        \"imageUrl\": \"https://m.media-amazon.com/images/I/71XGT4c1IWL._AC_SX679_.jpg\",\n        \"aboutimage\": \"Classic cotton T-shirt, available in Small, Medium, Large, XL in black, white, and navy. Costs $25. Would you like to order this T-shirt or see more?\"\n      }\n    ]\n  }\n}\nCustomer: I want this one\nResponse:\n{\n  \"response\": {\n    \"message\": \"Awesome choice, {{ $json.customer.fullName }}! How many T-shirts would you like to purchase, and please provide the size and color.\"\n  }\n}\nCustomer: Medium, navy, 2\nResponse:\n{\n  \"response\": {\n    \"message\": \"Got it! To proceed with your order of 2 Medium Navy T-shirts, please provide your email, shipping address, and phone number.\"\n  }\n}\nCustomer: john.doe@gmail.com, 123 Main St, Kathmandu, Nepal, 9841234567\nResponse:\n{\n  \"response\": {\n    \"message\": \"Thank you, {{ $json.customer.fullName }}! Your order: 2 Medium Navy T-shirts (Product ID: a1b2c3d4-e5f6-g7h8-i9j0-klmnopqrstuv) for $50. You chose Solana Pay. Here's your payment link.\",\n    \"PaymentButton\": {\n      \"label\": \"Pay Now\",\n      \"url\": \"solana:MERCHANT_WALLET?amount=50&spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&reference=1z2y3x4w5v6u7t8s9r0qponmlkjihgfe&label=TrendyThreads&message=Order for 2 navy T-shirts&memo=Order1001\"\n    }\n  }\n}\n\nScenario 2: Customer Wants a Jacket\nCustomer: Hey, any jackets?\nResponse:\n{\n  \"response\": {\n    \"message\": \"Hi {{ $json.customer.fullName }}! Welcome to {{ $('get page data').item.json.business.name }}! Check out this stylish jacket!\",\n    \"product\": [\n      {\n        \"product_id\": \"b2c3d4e5-f6g7-h8i9-j0k1-lmnopqrstuvw\",\n        \"image_type\": \"image\",\n        \"imageUrl\": \"https://m.media-amazon.com/images/I/81gN9fZTL._AC_SX679_.jpg\",\n        \"aboutimage\": \"Leather jacket, available in M, L, XL in black and brown. Costs $120. Want to order this or see other jackets?\"\n      }\n    ]\n  }\n}\nCustomer: I’ll take it\nResponse:\n{\n  \"response\": {\n    \"message\": \"Great, {{ $json.customer.fullName }}! How many jackets, and what size and color would you like?\"\n  }\n}\nCustomer: 1, Large, black\nResponse:\n{\n  \"response\": {\n    \"message\": \"Perfect! Please provide your email, shipping address, and phone number to complete your order for 1 Large Black Jacket.\"\n  }\n}\nCustomer: jane.smith@yahoo.com, Pokhara, Nepal, 9779876543210\nResponse:\n{\n  \"response\": {\n    \"message\": \"Thanks, {{ $json.customer.fullName }}! Your order: 1 Large Black Jacket (Product ID: b2c3d4e5-f6g7-h8i9-j0k1-lmnopqrstuvw) for $120. Pay with Solana Pay to finalize!\",\n    \"PaymentButton\": {\n      \"label\": \"Pay Now\",\n      \"url\": \"solana:MERCHANT_WALLET?amount=120&spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&reference=9a8b7c6d5e4f3g2h1i0jklmnopqrstuv&label=TrendyThreads&message=Order for black leather jacket&memo=Order1002\"\n    }\n  }\n}\n\nScenario 3: Customer Inquires About Kidswear\nCustomer: Hi, do you have clothes for kids?\nResponse:\n{\n  \"response\": {\n    \"message\": \"Hello {{ $json.customer.fullName }}! Welcome to {{ $('get page data').item.json.business.name }}! We have adorable kidswear! Here's one option.\",\n    \"product\": [\n      {\n        \"product_id\": \"c3d4e5f6-g7h8-i9j0-k1l2-mnopqrstuvwx\",\n        \"image_type\": \"image\",\n        \"imageUrl\": \"https://m.media-amazon.com/images/I/61XhX6rW3L._AC_SX679_.jpg\",\n        \"aboutimage\": \"Kids' cotton hoodie, sizes XS, S, M in red and blue. Costs $30. Would you like this or more kidswear options?\"\n      }\n    ]\n  }\n}\nCustomer: I want the hoodie\nResponse:\n{\n  \"response\": {\n    \"message\": \"Nice pick, {{ $json.customer.fullName }}! How many hoodies, and what size and color do you want?\"\n  }\n}\nCustomer: 2, Small, red\nResponse:\n{\n  \"response\": {\n    \"message\": \"Got it! Please share your email, shipping address, and phone number for your order of 2 Small Red Kids' Hoodies.\"\n  }\n}\nCustomer: emily.jones@gmail.com, Biratnagar, Nepal, 9801234567\nResponse:\n{\n  \"response\": {\n    \"message\": \"Thank you, {{ $json.customer.fullName }}! Your order: 2 Small Red Kids' Hoodies (Product ID: c3d4e5f6-g7h8-i9j0-k1l2-mnopqrstuvwx) for $60. Complete payment with Solana Pay!\",\n    \"PaymentButton\": {\n      \"label\": \"Pay Now\",\n      \"url\": \"solana:MERCHANT_WALLET?amount=60&spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&reference=qwertyuiopasdfghjklzxcvbnm123456&label=TrendyThreads&message=Order for 2 kids red hoodies&memo=Order1003\"\n    }\n  }\n}\n\nScenario 4: Customer Reports Missing Order\nCustomer: Hi, I ordered a shirt but haven’t received it\nResponse:\n{\n  \"response\": {\n    \"message\": \"I’m so sorry for the inconvenience, {{ $json.customer.fullName }}! Could you share your order ID or email so I can check on your shirt order?\"\n  }\n}\nCustomer: My email is mike.brown@gmail.com\nResponse:\n{\n  \"response\": {\n    \"message\": \"Thanks for providing your email, {{ $json.customer.fullName }}! I’ll need your shipping address and phone number to verify the order details and resolve this for you.\"\n  }\n}\nCustomer: Lalitpur, Nepal, 9851234567\nResponse:\n{\n  \"response\": {\n    \"message\": \"Thank you, {{ $json.customer.fullName }}! I’ve noted your details. I’ll check the status of your shirt order and get back to you soon. Is there anything else I can assist with?\"\n  }\n}\n\nScenario 5: Customer Wants a Dress\nCustomer: Hello, any dresses for a party?\nResponse:\n{\n  \"response\": {\n    \"message\": \"Hi {{ $json.customer.fullName }}! Welcome to {{ $('get page data').item.json.business.name }}! Here’s a stunning party dress!\",\n    \"product\": [\n      {\n        \"product_id\": \"d4e5f6g7-h8i9-j0k1-l2m3-nopqrstuvwxy\",\n        \"image_type\": \"image\",\n        \"imageUrl\": \"https://m.media-amazon.com/images/I/71ZyW5fX5L._AC_SX679_.jpg\",\n        \"aboutimage\": \"Elegant evening dress, sizes S, M, L in black and red. Costs $80. Want to order this or see more dresses?\"\n      }\n    ]\n  }\n}\nCustomer: I like this dress\nResponse:\n{\n  \"response\": {\n    \"message\": \"Great choice, {{ $json.customer.fullName }}! How many dresses, and what size and color would you like?\"\n  }\n}\nCustomer: 1, Medium, black\nResponse:\n{\n  \"response\": {\n    \"message\": \"Perfect! Please provide your email, shipping address, and phone number for your order of 1 Medium Black Dress.\"\n  }\n}\nCustomer: sarah.lee@gmail.com, Bhaktapur, Nepal, 9812345678\nResponse:\n{\n  \"response\": {\n    \"message\": \"Thanks, {{ $json.customer.fullName }}! Your order: 1 Medium Black Dress (Product ID: d4e5f6g7-h8i9-j0k1-l2m3-nopqrstuvwxy) for $80. Pay with Solana Pay to finalize!\",\n    \"PaymentButton\": {\n      \"label\": \"Pay Now\",\n      \"url\": \"solana:MERCHANT_WALLET?amount=80&spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&reference=abcdef1234567890ghijklmnopqrstuv Игры &label=TrendyThreads&message=Order for black evening dress&memo=Order1004\"\n    }\n  }\n}\n\nScenario 6: Customer Inquires About Accessories\nCustomer: Do you have any caps?\nResponse:\n{\n  \"response\": {\n    \"message\": \"Hello {{ $json.customer.fullName }}! Welcome to {{ $('get page data').item.json.business.name }}! Check out this cool cap!\",\n    \"product\": [\n      {\n        \"product_id\": \"e5f6g7h8-i9j0-k1l2-m3n4-opqrstuvwxyz\",\n        \"image_type\": \"image\",\n        \"imageUrl\": \"https://m.media-amazon.com/images/I/61y3X2y3X2L._AC_SX679_.jpg\",\n        \"aboutimage\": \"Stylish baseball cap, one size, in black and white. Costs $15. Want to order this or see more accessories?\"\n      }\n    ]\n  }\n}\nCustomer: I’ll take the cap\nResponse:\n{\n  \"response\": {\n    \"message\": \"Nice pick, {{ $json.customer.fullName }}! How many caps, and what color do you want?\"\n  }\n}\nCustomer: 3, black\nResponse:\n{\n  \"response\": {\n    \"message\": \"Got it! Please provide your email, shipping address, and phone number for your order of 3 Black Caps.\"\n  }\n}\nCustomer: david.kim@gmail.com, Butwal, Nepal, 9741234567\nResponse:\n{\n  \"response\": {\n    \"message\": \"Thank you, {{ $json.customer.fullName }}! Your order: 3 Black Caps (Product ID: e5f6g7h8-i9j0-k1l2-m3n4-opqrstuvwxyz) for $45. Complete payment with Solana Pay!\",\n    \"PaymentButton\": {\n      \"label\": \"Pay Now\",\n      \"url\": \"solana:MERCHANT_WALLET?amount=45&spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&reference=zyxwvutsrqponmlkjihgfedcba987654&label=TrendyThreads&message=Order for 3 black caps&memo=Order1005\"\n    }\n  }\n}\n\nScenario 7: Customer Wants Bulk Order\nCustomer: Hi, can I order 10 shirts for my team?\nResponse:\n{\n  \"response\": {\n    \"message\": \"Hi {{ $json.customer.fullName }}! Welcome to {{ $('get page data').item.json.business.name }}! Here’s a great shirt for bulk orders!\",\n    \"product\": [\n      {\n        \"product_id\": \"f6g7h8i9-j0k1-l2m3-n4o5-pqrstuvwxyz1\",\n        \"image_type\": \"image\",\n        \"imageUrl\": \"https://m.media-amazon.com/images/I/81X2X3X4X5L._AC_SX679_.jpg\",\n        \"aboutimage\": \"Cotton polo shirt, sizes S, M, L, XL in white and grey. Costs $20 each. Want to proceed with these or see other options?\"\n      }\n    ]\n  }\n}\nCustomer: These are good\nResponse:\n{\n  \"response\": {\n    \"message\": \"Awesome, {{ $json.customer.fullName }}! For your 10 shirts, please provide the size and color for each.\"\n  }\n}\nCustomer: All Medium, white\nResponse:\n{\n  \"response\": {\n    \"message\": \"Perfect! Please provide your email, shipping address, and phone number for your order of 10 Medium White Polo Shirts.\"\n  }\n}\nCustomer: lisa.wong@gmail.com, Chitwan, Nepal, 9861234567\nResponse:\n{\n  \"response\": {\n    \"message\": \"Thanks, {{ $json.customer.fullName }}! Your order: 10 Medium White Polo Shirts (Product ID: f6g7h8i9-j0k1-l2m3-n4o5-pqrstuvwxyz1) for $200. Pay with Solana Pay to finalize!\",\n    \"PaymentButton\": {\n      \"label\": \"Pay Now\",\n      \"url\": \"solana:MERCHANT_WALLET?amount=200&spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&reference=1234567890abcdefghiijklmnopqrs&label=TrendyThreads&message=Order for 10 white polo shirts&memo=Order1006\"\n    }\n  }\n}\n\nScenario 8: Customer Asks About Sale Items\nCustomer: Hi, any items on sale?\nResponse:\n{\n  \"response\": {\n    \"message\": \"Hello {{ $json.customer.fullName }}! Welcome to {{ $('get page data').item.json.business.name }}! We have a sale on jeans!\",\n    \"product\": [\n      {\n        \"product_id\": \"g7h8i9j0-k1l2-m3n4-o5p6-qrstuvwxyz12\",\n        \"image_type\": \"image\",\n        \"imageUrl\": \"https://m.media-amazon.com/images/I/71y3y4y5y6L._AC_SX679_.jpg\",\n        \"aboutimage\": \"Slim-fit jeans, sizes S, M, L in blue and black. Now $35 (was $50). Want to order these or see more sale items?\"\n      }\n    ]\n  }\n}\nCustomer: I want the jeans\nResponse:\n{\n  \"response\": {\n    \"message\": \"Great deal, {{ $json.customer.fullName }}! How many jeans, and what size and color would you like?\"\n  }\n}\nCustomer: 2, Large, blue\nResponse:\n{\n  \"response\": {\n    \"message\": \"Got it! Please provide your email, shipping address, and phone number for your order of 2 Large Blue Jeans.\"\n  }\n}\nCustomer: tom.wilson@gmail.com, Dhangadhi, Nepal, 9821234567\nResponse:\n{\n  \"response\": {\n    \"message\": \"Thank you, {{ $json.customer.fullName }}! Your order: 2 Large Blue Jeans (Product ID: g7h8i9j0-k1l2-m3n4-o5p6-qrstuvwxyz12) for $70. Complete payment with Solana Pay!\",\n    \"PaymentButton\": {\n      \"label\": \"Pay Now\",\n      \"url\": \"solana:MERCHANT_WALLET?amount=70&spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&reference=9876543210zyxwvutsrqponmlkjihgfe&label=TrendyThreads&message=Order for 2 blue jeans&memo=Order1007\"\n    }\n  }\n}\n\nScenario 9: Customer Wants a Refund\nCustomer: Hi, I want to return a sweater\nResponse:\n{\n  \"response\": {\n    \"message\": \"I’m sorry to hear that, {{ $json.customer.fullName }}! Could you share your order ID or email so I can process your return request for the sweater?\"\n  }\n}\nCustomer: My email is anna.taylor@gmail.com\nResponse:\n{\n  \"response\": {\n    \"message\": \"Thanks, {{ $json.customer.fullName }}! Please provide your shipping address and phone number to proceed with the return.\"\n  }\n}\nCustomer: Hetauda, Nepal, 9831234567\nResponse:\n{\n  \"response\": {\n    \"message\": \"Thank you, {{ $json.customer.fullName }}! I’ve noted your details. Please return the sweater within 14 days to our address, and I’ll process your refund. Let me know if you need further assistance!\"\n  }\n}\n\nScenario 10: Customer Inquires About Formal Shirts\nCustomer: Hi, looking for formal shirts\nResponse:\n{\n  \"response\": {\n    \"message\": \"Hello {{ $json.customer.fullName }}! Welcome to {{ $('get page data').item.json.business.name }}! Here’s a sharp formal shirt!\",\n    \"product\": [\n      {\n        \"product_id\": \"h8i9j0k1-l2m3-n4o5-p6q7-rstuvwxyz123\",\n        \"image_type\": \"image\",\n        \"imageUrl\": \"https://m.media-amazon.com/images/I/81z3z4z5z6L._AC_SX679_.jpg\",\n        \"aboutimage\": \"Slim-fit formal shirt, sizes M, L, XL in white and light blue. Costs $40. Want to order this or see more formal wear?\"\n      }\n    ]\n  }\n}\nCustomer: I’ll take this shirt\nResponse:\n{\n  \"response\": {\n    \"message\": \"Nice choice, {{ $json.customer.fullName }}! How many shirts, and what size and color would you like?\"\n  }\n}\nCustomer: 1, Large, white\nResponse:\n{\n  \"response\": {\n    \"message\": \"Perfect! Please provide your email, shipping address, and phone number for your order of 1 Large White Formal Shirt.\"\n  }\n}\nCustomer: robert.moore@gmail.com, Nepalgunj, Nepal, 9845678901\nResponse:\n{\n  \"response\": {\n    \"message\": \"Thanks, {{ $json.customer.fullName }}! Your order: 1 Large White Formal Shirt (Product ID: h8i9j0k1-l2m3-n4o5-p6q7-rstuvwxyz123) for $40. Pay with Solana Pay to finalize!\",\n    \"PaymentButton\": {\n      \"label\": \"Pay Now\",\n      \"url\": \"solana:MERCHANT_WALLET?amount=40&spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&reference=1a2b3c4d5e6f7g8h9i0jklmnopqrstuv&label=TrendyThreads&message=Order for white formal shirt&memo=Order1008\"\n    }\n  }\n}\n\nFinal Notes:\n- Responses are delivered via Facebook Messenger, with Solana Pay links as buttons.\n- Solana Pay URLs follow the format: solana:<recipient>?amount=<amount>&spl-token=<spl-token>&reference=<reference>&label=<label>&message=<message>&memo=<memo>, using USDC (EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v) for payments.\n- Payment links are only generated after collecting all required details (Product ID, Quantity, Size, Color, Email, Shipping Address, Phone Number).\n- Replace MERCHANT_WALLET with the actual merchant's Solana public key in implementation.\n- Maintain a friendly tone and guide customers toward completing their purchase.\n- Do not fabricate data unless authorized by the system or database.",
+          "maxIterations": 3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -928,
+        2830
+      ],
+      "id": "13beba31-d38e-4c1c-a1ff-f0b69ec36da5",
+      "name": "super agent",
+      "executeOnce": true,
+      "retryOnFail": true,
+      "alwaysOutputData": false,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this tool to fetch detailed business information. This helps you personalize your sales or provide relevant business context when offering products or services. Use it if you need business context before recommending a product, creating an order, or confirming availability, or send message.\n",
+        "url": "=http://localhost:3000/business/{{ $('Split messaging').item.json.recipient.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        2136,
+        -860
+      ],
+      "id": "180f6b89-669a-4b17-aa6a-5287bb14568c",
+      "name": "get business information"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Fetches the customer's past and current orders using the sender's ID.\n",
+        "url": "=http://localhost:3000/order/{{ $('Split messaging').item.json.sender.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -900,
+        3050
+      ],
+      "id": "90af00ec-04af-4f08-a9fc-7c162d50fef2",
+      "name": "get customer past and current order",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Split messaging').item.json.sender.id }}",
+        "sessionTTL": 86400000,
+        "contextWindowLength": 300
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        -1020,
+        3050
+      ],
+      "id": "a443682e-971f-46ab-a62f-f8d3980f3c4b",
+      "name": "Redis Chat Memory",
+      "credentials": {
+        "redis": {
+          "id": "JdMon8acMSYTUpTt",
+          "name": "Redis chat history database"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {
+          "prompt": "Instructions:\n--------------\n{instructions}\n--------------\nCompletion:\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions.\nError:\n--------------\n{error}\n--------------\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        -940,
+        3902.5
+      ],
+      "id": "f655decd-3e28-45b6-b024-5ff532d91f5e",
+      "name": "Auto-fixing Output Parser",
+      "notesInFlow": true,
+      "disabled": true,
+      "notes": "hey"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-pro",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1140,
+        3810
+      ],
+      "id": "55c1dc36-2e8d-40b0-a1cd-89b1624510b6",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{ \n  \"message\": \"Any general message, question, answer, confirmation message, order details, product information (like cost), or any other message that the AI wants to send to the customer\",\n  \"product\": [\n    {\n      \"product_id\": \"UUID of the product, e.g., 0i1j2k3l-4m5n-6o7p-8q9r-0s1t2u3v4w5x\",\n      \"image_type\": \"Type of media - image, video, or reel\",\n      \"imageUrl\": \"URL of the image (must be a valid image link)\",\n      \"aboutimage\": \"Short description of the product image\"\n    }\n  ],\n  \"PaymentButton\": {\n    \"label\": \"Text displayed on the button, e.g., 'Pay Now'\",\n    \"url\": \"Must be a valid payment link\"\n  }\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -1140,
+        3990
+      ],
+      "id": "e66850f7-5075-446d-9b06-97ab708a082a",
+      "name": "Structured Output Parser",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "toolDescription": "Generates a Stripe payment link for the customer using their order details, shipping address, and contact information.\n\n{\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+1234567890\",\n  \"shipping_address\": \"123 Main Street, Cityname, Country\",\n  \"order\": [\n    {\n      \"product_id\": \"0i1j2k3l-4m5n-6o7p-8q9r-0s1t2u3v4w5x\",\n       \"product_name\":\"Jogger Pants\"\n      \"quantity\": 2,\n      \"size\": \"M\",\n      \"color\": \"Black\"\n    },\n    {\n      \"product_id\": \"prod_xyz789\",\n      \"quantity\": 1,\n      \"size\": \"L\",\n      \"color\": \"Red\"\n    }\n  ]\n}\n",
+        "url": "=http://localhost:3000/paymentlink/{{ $('Split messaging').item.json.sender.id }}/{{ $('Split messaging').item.json.recipient.id }}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=orders",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', `To generate a payment:\nEnsure these fields are provided by the customer:\nEmail (string): Customer's valid email address.\nPhone (string): Customer's phone number.\nShipping Address (string): Full delivery address.\nOrder (array of at least one product): Each product in the order must include:\nproduct_id (string): UUID of the selected product.\nproduct_name (string): name of the selected product. \nquantity (integer): Number of units to purchase.\nsize (string): Chosen size (e.g., XS, S, M, L, XL).\ncolor (string): Chosen color.\nOnly generate a payment_link if all the above fields are available and valid.\nsend a data in given format\n{\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+1234567890\",\n  \"shipping_address\": \"123 Main Street, Cityname, Country\",\n  \"order\": [\n    {\n      \"product_id\": \"0i1j2k3l-4m5n-6o7p-8q9r-0s1t2u3v4w5x\",\n       \"product_name\":\"Jogger Pants\"\n      \"quantity\": 2,\n      \"size\": \"M\",\n      \"color\": \"Black\"\n    },\n    {\n      \"product_id\": \"prod_xyz789\",\n      \"quantity\": 1,\n      \"size\": \"L\",\n      \"color\": \"Red\"\n    }\n  ]\n}\n`, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -780,
+        3050
+      ],
+      "id": "6f9947c5-fd74-4a1b-82d8-6907ac281760",
+      "name": "generate stripe payment link",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/me/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('get page details form database').item.json.accessToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "recipient",
+              "value": "={\"id\":\"{{ $('Split messaging').item.json.sender.id}} \"} "
+            },
+            {
+              "name": "message",
+              "value": "={\"text\":{{ $json.message }}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        100,
+        2630
+      ],
+      "id": "cff67189-dd62-48a0-a9fb-b138991325f9",
+      "name": "send text message",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Accessing the message using the expression\nconst message = $('super agent').first().json.output.response.message;\n\n// Returning the stringified message\nreturn [\n  {\n    json: {\n      message: JSON.stringify(message),\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -120,
+        2630
+      ],
+      "id": "15c6143e-6308-48d9-81c6-3ed4a2fc323d",
+      "name": "convert to raw json",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a17411c6-8237-44f3-9f4b-520d92330ff6",
+              "leftValue": "={{ $json.output.response.message }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -340,
+        2630
+      ],
+      "id": "ab42fde6-88e3-4b99-aec2-1318a594c606",
+      "name": "If message",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a17411c6-8237-44f3-9f4b-520d92330ff6",
+              "leftValue": "={{ $('super agent').item.json.output.response.product }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -340,
+        3030
+      ],
+      "id": "1ca1f331-21fa-498d-9df5-c6a749190bed",
+      "name": "if product",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/me/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('get page details form database').item.json.accessToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"{{ $('Split messaging').item.json.sender.id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"button\",\n        \"text\": \"pay Now\",\n        \"buttons\": [\n          {\n            \"type\": \"web_url\",\n            \"url\": \"{{ $('super agent').item.json.output.response.PaymentButton.url }}\",\n            \"title\": \"{{ $('super agent').item.json.output.response.PaymentButton.label }}\"\n          }\n        ]\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -120,
+        2830
+      ],
+      "id": "2f157f85-ea45-427f-8df3-9dbce7d6e720",
+      "name": "sending payment button",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output.response.product",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -120,
+        3030
+      ],
+      "id": "e7b10443-bd65-464d-a92f-e67ed97597f4",
+      "name": "Split Out2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/me/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('get page details form database').item.json.accessToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "recipient",
+              "value": "={\"id\":\"{{ $('Split messaging').item.json.sender.id}} \"} "
+            },
+            {
+              "name": "message",
+              "value": "={\"text\":\"{{ $json.aboutimage }}\"}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        100,
+        2930
+      ],
+      "id": "9381a3b8-bad2-4b0f-97c9-3b0693fe2738",
+      "name": "send text message1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/me/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('get page details form database').item.json.accessToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n \"message\": {\n   \"attachment\": {\n        \"type\": \"{{ $json.image_type }}\",\n        \"payload\": {\n        \"url\": \"{{ $json.imageUrl }}\"\n        }\n   }\n   },\n\"recipient\": {\n \"id\": \"{{ $('Split messaging').item.json.sender.id }}\"\n}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        100,
+        3130
+      ],
+      "id": "22ba9e01-e624-4201-a118-62a1c04a8044",
+      "name": "send image",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "73e65888-b62a-49a2-8947-cb4658b2a7dd",
+              "leftValue": "={{ $json.output.response.PaymentButton }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -340,
+        2830
+      ],
+      "id": "060ca6b5-f9f0-4207-a678-a7825ec81ab3",
+      "name": "check if payment button available or not",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "body.entry",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -700,
+        -97
+      ],
+      "id": "eb702855-cda7-443d-a0ee-b345a8725faf",
+      "name": "split entry"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "messaging",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        -97
+      ],
+      "id": "9de6a95b-1c9d-4228-92bd-2edbfb854cab",
+      "name": "Split messaging"
+    },
+    {
+      "parameters": {
+        "url": "=http://localhost:3000/business/{{ $('Split messaging').item.json.recipient.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        180,
+        -97
+      ],
+      "id": "2ac710e8-928f-40cb-9c67-1830712fedbd",
+      "name": "get page data"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "get payment method",
+        "operation": "executeQuery",
+        "query": "SELECT methodType from payment_data where business='{{ $('get page data').item.json.business.id }}'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySqlTool",
+      "typeVersion": 2.4,
+      "position": [
+        -660,
+        3050
+      ],
+      "id": "762a81f4-93cf-4909-9a57-230b199f1596",
+      "name": "get payment method",
+      "credentials": {
+        "mySql": {
+          "id": "0tvKzNUeqcKioMoj",
+          "name": "MySQL account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/me/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('get page details form database').item.json.accessToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"{{ $('Split messaging').item.json.sender.id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"button\",\n        \"text\": \"pay Now\",\n        \"buttons\": [\n          {\n            \"type\": \"web_url\",\n            \"url\": \"{{ $('super agent').item.json.output.response.PaymentButton.url }}\",\n            \"title\": \"{{ $('super agent').item.json.output.response.PaymentButton.label }}\"\n          }\n        ]\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1140,
+        4230
+      ],
+      "id": "855cd98e-7852-49cf-8b1c-f8bb3c97bb14",
+      "name": "sending payment button1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "toolDescription": "Makes an HTTP request to send a image to the customer ",
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/me/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('get page details form database').item.json.accessToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n \"message\": {\n   \"attachment\": {\n        \"type\": \"{{ $fromAI('parameters1_Value', `message to customer`, 'string') }}\",\n        \"payload\": {\n        \"url\": \"{{ $fromAI('parameters2_Value', `message to customer`, 'string') }}\"\n        }\n   }\n   },\n\"recipient\": {\n \"id\": \"{{ $('Split messaging').item.json.sender.id }}\"\n}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -1140,
+        4730
+      ],
+      "id": "fce54092-320c-414f-9734-7a75bf2f0bd5",
+      "name": "HTTP Request1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "toolDescription": "use this tool when the customer asks to see, browse, view, or search for products, or mentions any product name (e.g. ‘jacket’, ‘tshirt’, ‘pants’). It returns a list of available products including name, price, and stock status. Use this to show product options or help customers pick items to order.\n\n",
+        "url": "=http://localhost:3000/product/{{ $('Split messaging').item.json.recipient.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -540,
+        3050
+      ],
+      "id": "abd25f44-e0a2-48c6-997e-97b1680050bd",
+      "name": "get list of cloth",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "toolDescription": "This tool sends a text message to a customer via an HTTP request to a messaging service like Facebook Messenger, WhatsApp, or similar platforms. If the message is relevant to the customer’s query or interaction, it will be sent directly using this tool. If the message content is deemed irrelevant or unrecognized, a default apology message will be sent stating: \"Sorry, I can't help with that.\"",
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/me/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('get page details form database').item.json.accessToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "recipient",
+              "value": "={\"id\":\"{{ $('Split messaging').item.json.sender.id}} \"} "
+            },
+            {
+              "name": "message",
+              "value": "={\"text\":\"{{ $fromAI('parameters1_Value', `message to customer`, 'string') }}\"}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text",
+              "outputPropertyName": "=success full send message to customer {{ $fromAI('parameters1_Value', `message to customer`, 'string') }}"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -1140,
+        4490
+      ],
+      "id": "62125b8c-6c32-4f03-bfce-80c4af4a6fa2",
+      "name": "sendMessage",
+      "notesInFlow": false,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {
+          "prompt": "Instructions:\n--------------\n{instructions}\n--------------\nCompletion:\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions.\nError:\n--------------\n{error}\n--------------\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        -940,
+        3482.5
+      ],
+      "id": "9b348c1f-487c-42de-9dba-251cb7e8b856",
+      "name": "Auto-fixing Output Parser1",
+      "notesInFlow": true,
+      "disabled": true,
+      "notes": "hey"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-pro",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1140,
+        3390
+      ],
+      "id": "3b84b8d4-2792-4c96-b7a9-98cf280bde80",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"response\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"message\": {\n          \"type\": \"string\",\n          \"description\": \"Any general message, question, answer, confirm message, sending order information, product details like cost or any other message anything that AI wants to send to the customer\"\n        },\n        \"product\": {\n          \"type\": \"array\",\n          \"description\": \"List of product images or videos with details\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"product_id\": {\n                \"type\": \"string\",\n                \"description\": \"UUID of the product example 0i1j2k3l-4m5n-6o7p-8q9r-0s1t2u3v4w5x\"\n              },\n              \"image_type\": {\n                \"type\": \"string\",\n                \"description\": \"Type of media - image, video, or reel\"\n              },\n              \"imageUrl\": {\n                \"type\": \"string\",\n                \"description\": \"URL of the image (must be a valid image link)\"\n              },\n              \"aboutimage\": {\n                \"type\": \"string\",\n                \"description\": \"Short description of the product image\"\n              }\n            },\n            \"required\": [\n              \"product_id\",\n              \"image_type\",\n              \"imageUrl\",\n              \"aboutimage\"\n            ]\n          },\n          \"default\": []\n        },\n        \"PaymentButton\": {\n          \"type\": \"object\",\n          \"description\": \"Details to send a payment link\",\n          \"properties\": {\n            \"label\": {\n              \"type\": \"string\",\n              \"description\": \"Text displayed on the button, e.g., 'Pay Now'\"\n            },\n            \"url\": {\n              \"type\": \"uri\",\n              \"description\": \"must be a valid Payment link\"\n            }\n          },\n          \"required\": [\n            \"label\",\n            \"url\"\n          ]\n        },\n        \"default\": {}\n      },\n      \"required\": [\n        \"message\"\n      ]\n    }\n  },\n  \"required\": [\n    \"response\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -1140,
+        3570
+      ],
+      "id": "dd89b3cf-e410-4f1e-b371-0d83e9371383",
+      "name": "Structured Output Parser1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        2496,
+        -857.5
+      ],
+      "id": "ebef8a1a-6eb8-4639-9809-1b47abf2b185",
+      "name": "Auto-fixing Output Parser3",
+      "notesInFlow": true,
+      "notes": "hey"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"response\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"message\": {\n          \"type\": \"string\",\n          \"description\": \"Any general message, question, answer, confirm message, sending order information, product details like cost or any other message anything that AI wants to send to the customer\"\n        },\n        \"required\": [\n          \"message\"\n        ]\n      }\n    },\n    \"required\": [\n      \"response\"\n    ]\n  }\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        2644,
+        -660
+      ],
+      "id": "9d59a61d-7490-49e0-832d-a6cb5d7aad2e",
+      "name": "Structured Output Parser3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/me/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('get page details form database').item.json.accessToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "recipient",
+              "value": "={\"id\":\"{{ $('Split messaging').item.json.sender.id}} \"} "
+            },
+            {
+              "name": "message",
+              "value": "={\"text\":{{ $json.message }}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4026,
+        -780
+      ],
+      "id": "93447d19-95ba-4c08-aead-18fc0956d565",
+      "name": "send text message2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Accessing the message using the expression\nconst message =$input.first().json.output.response.message;\n\n// Returning the stringified message\nreturn [\n  {\n    json: {\n      message: JSON.stringify(message),\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3488,
+        -780
+      ],
+      "id": "2962cde6-1bff-40e5-abde-d6e5fb9cdc16",
+      "name": "convert to raw json1"
+    },
+    {
+      "parameters": {
+        "options": {
+          "prompt": "Instructions:\n--------------\n{instructions}\n--------------\nCompletion:\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions.\nError:\n--------------\n{error}\n--------------\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        2436,
+        1492.5
+      ],
+      "id": "36334d29-8dba-4a24-ad59-dbb07f3c24d3",
+      "name": "Auto-fixing Output Parser4",
+      "notesInFlow": true,
+      "notes": "hey"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-pro",
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.4,
+          "topK": 32,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2464,
+        1690
+      ],
+      "id": "b744fd8b-4ec6-42e8-a381-5c73d2140785",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"response\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"message\": {\n          \"type\": \"string\",\n          \"description\": \"Any message related to the product — including greeting, product description, price, availability, or follow-up questions.\"\n        },\n        \"product\": {\n          \"type\": \"array\",\n          \"description\": \"A list of product media with associated details to show the customer.\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"product_id\": {\n                \"type\": \"string\",\n                \"description\": \"The unique UUID of the product. Example: 0i1j2k3l-4m5n-6o7p-8q9r-0s1t2u3v4w5x\"\n              },\n              \"image_type\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"image\",\n                  \"video\",\n                  \"reel\"\n                ],\n                \"description\": \"The type of media being shared — image, video, or reel\"\n              },\n              \"imageUrl\": {\n                \"type\": \"string\",\n                \"description\": \"A valid URL link to the product image or media\"\n              },\n              \"aboutimage\": {\n                \"type\": \"string\",\n                \"description\": \"A short and clear description of what the image or video shows about the product with price size and color it is available\"\n              }\n            },\n            \"required\": [\n              \"product_id\",\n              \"image_type\",\n              \"imageUrl\",\n              \"aboutimage\"\n            ]\n          },\n          \"default\": []\n        }\n      },\n      \"required\": [\n        \"message\"\n      ]\n    }\n  },\n  \"required\": [\n    \"response\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        2584,
+        1690
+      ],
+      "id": "131d203b-35b0-4140-b23c-443f8547151e",
+      "name": "Structured Output Parser4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/me/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('get page details form database').item.json.accessToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n \"message\": {\n   \"attachment\": {\n        \"type\": \"{{ $('Split Out the response').item.json.image_type }}\",\n        \"payload\": {\n        \"url\": \"{{ $('Split Out the response').item.json.imageUrl }}\"\n        }\n   }\n   },\n\"recipient\": {\n \"id\": \"{{ $('Split messaging').item.json.sender.id }}\"\n}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4026,
+        1170
+      ],
+      "id": "82cefb7c-ebd3-4c05-9e5a-63346cfd1c70",
+      "name": "send image1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/me/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('get page details form database').item.json.accessToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "recipient",
+              "value": "={\"id\":\"{{ $('Split messaging').item.json.sender.id}} \"} "
+            },
+            {
+              "name": "message",
+              "value": "={\"text\":\"{{ $json.aboutimage }}\"}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3488,
+        1170
+      ],
+      "id": "fb755739-929d-4fb7-ad59-2594d99ff578",
+      "name": "send text message3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/me/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('get page details form database').item.json.accessToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "recipient",
+              "value": "={\"id\":\"{{ $('Split messaging').item.json.sender.id}} \"} "
+            },
+            {
+              "name": "message",
+              "value": "={\"text\":{{ $json.message }}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3488,
+        1370
+      ],
+      "id": "bd451b79-be26-44f8-b3eb-513329cb442c",
+      "name": "send text message4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/me/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('get page details form database').item.json.accessToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "recipient",
+              "value": "={\"id\":\"{{ $('Split messaging').item.json.sender.id}} \"} "
+            },
+            {
+              "name": "message",
+              "value": "={\"text\":{{ $json.message }}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4026,
+        -255
+      ],
+      "id": "4516b185-ed29-48aa-8e6a-d81b39f3b2be",
+      "name": "send text message5"
+    },
+    {
+      "parameters": {
+        "options": {
+          "prompt": "Instructions:\n--------------\n{instructions}\n--------------\nCompletion:\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions.\nError:\n--------------\n{error}\n--------------\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        2376,
+        -57.5
+      ],
+      "id": "420b2b8c-c472-4e68-99e3-fefcda79ea37",
+      "name": "Auto-fixing Output Parser5",
+      "notesInFlow": true,
+      "notes": "hey"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"response\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"message\": {\n          \"type\": \"string\",\n          \"description\": \"Any general message, question, answer, confirm message, sending order information, product details like cost or any other message anything that AI wants to send to the customer\"\n        }\n      },\n      \"required\": [\"message\"]\n    }\n  },\n  \"required\": [\"response\"]\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        2524,
+        140
+      ],
+      "id": "06dee168-0410-469f-9ef6-58b0b84fc0f5",
+      "name": "Structured Output Parser5"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Accessing the message using the expression\nconst message =$('take order form customer').first().json.output.response.message\n// Returning the stringified message\nreturn [\n  {\n    json: {\n      message: JSON.stringify(message),\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3488,
+        -255
+      ],
+      "id": "1287b12b-302e-4519-8461-b493f7855179",
+      "name": "convert to raw json2"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.4,
+          "topK": 32,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        3828,
+        190
+      ],
+      "id": "e695b171-5fc6-4b71-87cb-ae7ca739bb9a",
+      "name": "Google Gemini Chat Model4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash-latest",
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.4,
+          "topK": 32,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2524,
+        -660
+      ],
+      "id": "27a27cae-4f29-483b-aa3b-d0599f486587",
+      "name": "Google Gemini Chat Model5",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash-latest",
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.4,
+          "topK": 32,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1896,
+        -860
+      ],
+      "id": "7f33fcac-86fc-4cf7-b9ac-2a8e19e85e28",
+      "name": "Google Gemini Chat Model6",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.4,
+          "topK": 32,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2016,
+        -60
+      ],
+      "id": "3cb8c078-59cb-46f0-b83a-95b8011e8e84",
+      "name": "Google Gemini Chat Model7",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash-latest",
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.4,
+          "topK": 32,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2404,
+        140
+      ],
+      "id": "29bc0359-cf9e-4595-9bfd-b38c48981488",
+      "name": "Google Gemini Chat Model8",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash-latest",
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.4,
+          "topK": 32,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1956,
+        1490
+      ],
+      "id": "b96596db-8e0c-4911-8f92-a22581deaeff",
+      "name": "Google Gemini Chat Model9",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Split messaging').item.json.sender.id }}",
+        "sessionTTL": 86400000,
+        "contextWindowLength": 100
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        2016,
+        -860
+      ],
+      "id": "83e3e9ab-1166-424d-8273-2e5c325f95bb",
+      "name": "Redis Chat Memory1",
+      "credentials": {
+        "redis": {
+          "id": "JdMon8acMSYTUpTt",
+          "name": "Redis chat history database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Split messaging').item.json.sender.id }}",
+        "sessionTTL": 86400000,
+        "contextWindowLength": 100
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        2136,
+        -60
+      ],
+      "id": "fd2c68de-dd97-4890-964d-0cefffb8359c",
+      "name": "Redis Chat Memory2",
+      "credentials": {
+        "redis": {
+          "id": "JdMon8acMSYTUpTt",
+          "name": "Redis chat history database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Split messaging').item.json.sender.id }}",
+        "sessionTTL": 86400000,
+        "contextWindowLength": 100
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        2076,
+        1490
+      ],
+      "id": "11ffeb2a-303f-4ccf-a399-39e6416ba99b",
+      "name": "Redis Chat Memory3",
+      "credentials": {
+        "redis": {
+          "id": "JdMon8acMSYTUpTt",
+          "name": "Redis chat history database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "use this tool when the customer asks to see, browse, view, or search for products, or mentions any product name (e.g. ‘jacket’, ‘tshirt’, ‘pants’). It returns a list of available products including name, price, and stock status. Use this to show product options or help customers pick items to order.\n\n",
+        "url": "=http://localhost:3000/product/{{ $('Split messaging').item.json.recipient.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        2196,
+        1490
+      ],
+      "id": "5a9d31b4-bb13-4516-a582-86fe36f05565",
+      "name": "get list of cloth1"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "get payment method",
+        "operation": "executeQuery",
+        "query": "SELECT methodType from payment_data where business='{{ $('get page data').item.json.business.id }}'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySqlTool",
+      "typeVersion": 2.4,
+      "position": [
+        2256,
+        -860
+      ],
+      "id": "f7ea4c1f-9026-4165-a487-214ed75c95cd",
+      "name": "get payment method1",
+      "credentials": {
+        "mySql": {
+          "id": "0tvKzNUeqcKioMoj",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Fetches the customer's past and current orders using the sender's ID.\n",
+        "url": "=http://localhost:3000/order/{{ $('Split messaging').item.json.sender.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        2256,
+        -60
+      ],
+      "id": "6fce9bf6-a5b3-4c7b-8046-c76901ded377",
+      "name": "get customer past and current order1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Split messaging').item.json.sender.id }}",
+        "sessionTTL": 86400000,
+        "contextWindowLength": 100
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        3948,
+        190
+      ],
+      "id": "5bed697c-98c1-46b1-b8a2-ae6c21f7da66",
+      "name": "Redis Chat Memory5",
+      "credentials": {
+        "redis": {
+          "id": "JdMon8acMSYTUpTt",
+          "name": "Redis chat history database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/me/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('get page details form database').item.json.accessToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "recipient",
+              "value": "={\"id\":\"{{ $('Split messaging').item.json.sender.id}} \"} "
+            },
+            {
+              "name": "message",
+              "value": "={\"text\":{{ $json.message }}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        5004,
+        370
+      ],
+      "id": "eb02aea4-a0fc-4144-9fdd-263ba217c172",
+      "name": "send text message6"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Accessing the message using the expression\nconst message =$input.first().json.output.response.message;\n\n// Returning the stringified message\nreturn [\n  {\n    json: {\n      message: JSON.stringify(message),\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4784,
+        370
+      ],
+      "id": "87c75ec1-39cf-49ab-8c27-898c8d4069a4",
+      "name": "convert to raw json3"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        4068,
+        192.5
+      ],
+      "id": "a2d99e19-c3f3-4d5d-ad60-1cae35f21fd0",
+      "name": "Auto-fixing Output Parser6",
+      "notesInFlow": true,
+      "notes": "hey"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.4,
+          "topK": 32,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        4096,
+        390
+      ],
+      "id": "4da6c55e-f872-4c2e-9d99-fe161ed90899",
+      "name": "Google Gemini Chat Model12",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"response\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"message\": {\n          \"type\": \"string\",\n          \"description\": \"message to customer to collect information for payment link generate and to show what paymentt method do we accept\"\n        },\n        \"required\": [\n          \"message\"\n        ]\n      },\n      \n    \"required\": [\n      \"response\"\n    ]\n    }}\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        4216,
+        390
+      ],
+      "id": "db99c74f-21a7-44c9-8793-ee4699b9ae46",
+      "name": "Structured Output Parser6"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Get, send and update data in Redis about order "
+      },
+      "type": "n8n-nodes-base.redisTool",
+      "typeVersion": 1,
+      "position": [
+        2316,
+        1490
+      ],
+      "id": "f4c782f3-a3a9-4647-870e-c4c4c1e53c11",
+      "name": "order record2",
+      "credentials": {
+        "redis": {
+          "id": "y8AEp89EMsGdBbu9",
+          "name": "Redis cart"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "operation": "get",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redisTool",
+      "typeVersion": 1,
+      "position": [
+        2376,
+        -860
+      ],
+      "id": "937cbfd9-420d-4f4d-b128-0cf0181f84c0",
+      "name": "order record3",
+      "credentials": {
+        "redis": {
+          "id": "y8AEp89EMsGdBbu9",
+          "name": "Redis cart"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Split messaging').item.json.sender.id }}",
+        "sessionTTL": 86400000,
+        "contextWindowLength": 100
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        960,
+        120
+      ],
+      "id": "0ca5779c-7023-42a8-871a-2d7048345549",
+      "name": "Redis Chat Memory4",
+      "credentials": {
+        "redis": {
+          "id": "JdMon8acMSYTUpTt",
+          "name": "Redis chat history database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.4,
+          "topK": 32,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        840,
+        123
+      ],
+      "id": "3205e448-5b7a-4d76-ad2b-d401c2d5ea13",
+      "name": "Google Gemini Chat Model11",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.4,
+          "topK": 32,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1108,
+        323
+      ],
+      "id": "13b0ca35-4466-4208-a9fa-f50c40fc0125",
+      "name": "Google Gemini Chat Model10",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"category\":\"general_message,product,order,payment most be one of them\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1228,
+        323
+      ],
+      "id": "9c95b4b9-985a-4f09-a009-32c3aa0345d4",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        1080,
+        125.5
+      ],
+      "id": "c48e9d0a-1b36-46a8-8724-54f2bf10175e",
+      "name": "Auto-fixing Output Parser2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Accessing the message using the expression\nconst message =$input.first().json.output.response.message\n\n// Returning the stringified message\nreturn [\n  {\n    json: {\n      message: JSON.stringify(message),\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3070,
+        1370
+      ],
+      "id": "f331f0ec-dfff-456b-87e3-d2bc31fd56d3",
+      "name": "convert to raw json4"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d4eb1e59-b8c8-43bb-972f-aee43813648e",
+              "leftValue": "={{ $json.message.attachments }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -260,
+        -97
+      ],
+      "id": "4d58a28e-bac0-4107-b1dc-bf34fc8a27d0",
+      "name": "check if attachment or not from customer"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "social_page",
+          "mode": "list",
+          "cachedResultName": "social_page"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "pageId",
+              "value": "={{ $('Split messaging').item.json.recipient.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        -40,
+        -97
+      ],
+      "id": "f75b1045-9148-4de3-99e1-29fba30f8aa9",
+      "name": "get page details form database",
+      "credentials": {
+        "mySql": {
+          "id": "0tvKzNUeqcKioMoj",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://localhost:3000/customer/add/{{ $('Split messaging').item.json.sender.id }}/{{ $('Split messaging').item.json.recipient.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        -97
+      ],
+      "id": "c95d5f88-439d-4a49-9745-5e0d8a7b68e3",
+      "name": "save customer to database2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "45df4aa8-3c0e-44e8-8d86-e408b17c3173",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        620,
+        -97
+      ],
+      "id": "2e9a28ab-473a-4b1b-b877-95a6f4d588cf",
+      "name": "save customer to database success"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('save customer to database2').item.json.customer.fullName }} message {{ $('Split messaging').item.json.message.text }} category the message in one of the following category general_message,product,order,payment most output one of the following \n\n{\n\"output\": \n{\n\"category\": \n\"payment\"\n}\n}\n\nalways remimber that here are 4 agent who process the customer message letter so category accordigly.\n\nif customer ask for buy or order that doesn't exit in memory output product",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a helpful assistant your job is to category the user message into following category \ngeneral_message, product, order, payment \nyour reply most use the following json format\n{\n  \"category\":\"general_message|product|order|payment\"\n}\nremember the category that you have called\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        872,
+        -97
+      ],
+      "id": "a345d35e-7b63-47ff-af28-2904d40ffa36",
+      "name": "intent detection ai agent",
+      "alwaysOutputData": true,
+      "retryOnFail": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cfa13aef-8c75-424e-8877-b80fe6cf852c",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1456,
+        -172
+      ],
+      "id": "62ef2a5f-7ae9-441c-bacd-a35225fecfa7",
+      "name": "check response generated or not"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1676,
+        -97
+      ],
+      "id": "4d2c0f8b-0c25-4c28-b6bd-5f7f6cdd30cf",
+      "name": "if not wait for 2 second and ask again to generate",
+      "webhookId": "e13b9678-b86a-49f9-b647-23422fc9352f"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.category }}",
+                    "rightValue": "general_message",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b4fb39cc-6779-4c0b-baa0-0df10977b152"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "233b5d25-9c91-471b-8489-2f2581c80c69",
+                    "leftValue": "={{ $json.output.category }}",
+                    "rightValue": "product",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "408de955-e106-40b4-8a88-a7e82e993ea4",
+                    "leftValue": "={{ $json.output.category }}",
+                    "rightValue": "order",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6e10ce4f-5491-49bb-9001-7292f18703bb",
+                    "leftValue": "={{ $json.output.category }}",
+                    "rightValue": "payment",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d7bd1f7a-4223-445d-b05a-e12866cd2c0a",
+                    "leftValue": "={{ $json.output.category }}",
+                    "rightValue": "general",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1676,
+        103
+      ],
+      "id": "4a18040e-424a-4ca0-8d6e-0fdbdcc83736",
+      "name": "Switch according to intent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=reply customer message:- {{ $('Split messaging').item.json.message.text }}\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a helpful assistant of clothing business called {{ $('get page data').item.json.business.name }} reply customer message:- {{ $('Split messaging').item.json.message.text }}.business description {{ $('get page data').item.json.business.description }}. your job is to help a customer to buy a product. your job is to reply general message to customer "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        2108,
+        -1080
+      ],
+      "id": "8200dfcb-7dea-40c9-9074-a186e8d96b42",
+      "name": "AI Agent that response general message question"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.error ? 'solve the error: ' + $json.error : '' }}\n\n{{ $('Split messaging').item.json.message.text }}\n\nhelp customer place order to order any product the quantiy size and color are required to make order ask customer the quantiy size and color of the product they want to purchase. and if they give the order ask do you like to make payment or add more to the order\nhelp customer to show their order \nand always response in give format instruction\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a helpful assistant your job is to take order"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        2108,
+        -280
+      ],
+      "id": "e5d69411-4fb7-4f56-a27f-bf2369766b84",
+      "name": "take order form customer",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Split messaging').item.json.message.text }}\nreply to the message with question so customer willing to buy it the product\nin about image section add available size and color with price\nget required data from tool and use it don't try to put a random data from you\nalways add follow up question ask which product do you want to order\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a helpful assistant your job is to send a product image url and short description to the customer\nin aboutimage include price name the available size and color also add push message what do you like to pruchase todday"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        2108,
+        1270
+      ],
+      "id": "4bf3da58-bf98-4ce8-9cb8-ceb096af7e49",
+      "name": "show product to customer",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "toolDescription": "use this tool when the customer asks to see, browse, view, or search for products, or mentions any product name (e.g. ‘jacket’, ‘tshirt’, ‘pants’). It returns a list of available products including name, price, and stock status. Use this to show product options or help customers pick items to order.\n\n",
+        "url": "=http://localhost:3000/product/{{ $('Split messaging').item.json.recipient.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        3948,
+        790
+      ],
+      "id": "5e94a3b7-4026-4730-b8fe-24762a1dcdf1",
+      "name": "get list of cloth from database"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "02abc9ab-6075-4b8a-8690-5a920fdd71a5",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3070,
+        -955
+      ],
+      "id": "d6dfe4dd-2a6a-4137-9857-41c61433f017",
+      "name": "check response generate or not"
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3488,
+        -1055
+      ],
+      "id": "6d0c153f-0429-4b56-aef1-cb6d6febc539",
+      "name": "Wait 2 second and ask again to generate a response",
+      "webhookId": "41b01c7b-ce11-472d-b416-f3f2f847f301"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e18c0442-f054-426d-8153-e3b1775ee00f",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "54677d89-1e68-47ae-a0d2-489869f56713",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4564,
+        95
+      ],
+      "id": "bf4de2e6-f37e-47d0-9416-6654bfb7de46",
+      "name": "check if response generated or not"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4784,
+        170
+      ],
+      "id": "9cba435f-eaf7-4d29-a2ee-7c117759be1c",
+      "name": "Wait for 2 second and ask again",
+      "webhookId": "1a56c279-a845-4511-9806-c8457d4e207a"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output.response.product",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        3070,
+        1170
+      ],
+      "id": "c4d2f2d6-545d-49e1-b7eb-f68354cf98db",
+      "name": "Split Out the response"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e18c0442-f054-426d-8153-e3b1775ee00f",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "54677d89-1e68-47ae-a0d2-489869f56713",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3070,
+        -430
+      ],
+      "id": "1c57487c-ac40-421c-af21-78072f7aa2d1",
+      "name": "check if response generated or not1"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3488,
+        -455
+      ],
+      "id": "e4770ebb-5ae7-4f9a-b33a-88e81a754154",
+      "name": "Wait for 2 second and ask again1",
+      "webhookId": "1a56c279-a845-4511-9806-c8457d4e207a"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('save customer to database2').item.json.customer.fullName }} message {{ $('Split messaging').item.json.message.text }} category the message in one of the following category \ntake payment details | send payment link\n\nif customer have not provided shipping address email and phone or customer have not selected a payment method from this ({{ $json.methodTypes }}) or customer want to change the details output take payment details \n{\n\"output\": \n{\n\"category\": \n\"take payment details | send payment link\"\n}\n}\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a helpful assistant your job is to category the user message into following category \ngeneral_message, product, order, payment \nyour reply most use the following json format\n{\n  \"category\":\"general_message|product|order|payment\"\n}\nremember the category that you have called\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        2904,
+        449
+      ],
+      "id": "798ad538-4b45-4f5d-828c-0da468e9755a",
+      "name": "intent detection ai agent1",
+      "alwaysOutputData": true,
+      "retryOnFail": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.4,
+          "topK": 32,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2872,
+        669
+      ],
+      "id": "7335d956-4639-4256-9596-eb0ee27f079b",
+      "name": "Google Gemini Chat Model13",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Split messaging').item.json.sender.id }}",
+        "sessionTTL": 86400000,
+        "contextWindowLength": 100
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        2992,
+        669
+      ],
+      "id": "82274090-7b87-4db5-83a0-e51168717a9d",
+      "name": "Redis Chat Memory6",
+      "credentials": {
+        "redis": {
+          "id": "JdMon8acMSYTUpTt",
+          "name": "Redis chat history database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        3112,
+        671.5
+      ],
+      "id": "2b37bebd-c6dc-4d8e-8da5-b33e426cb7fe",
+      "name": "Auto-fixing Output Parser7"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.4,
+          "topK": 32,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        3140,
+        869
+      ],
+      "id": "d8b33d91-fe82-4a71-bc46-90c132116a01",
+      "name": "Google Gemini Chat Model14",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"category\":\"take payment details | send payment link\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        3260,
+        869
+      ],
+      "id": "60d21590-f650-4f13-a709-1dd9c042d625",
+      "name": "Structured Output Parser7"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.category }}",
+                    "rightValue": "send payment link",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "ad6e823e-86a2-4ba0-978c-382dcc327152"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c9c9bfc3-579c-4c8c-b296-bc07823d9f10",
+                    "leftValue": "={{ $json.output.category }}",
+                    "rightValue": "take payment details",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        3488,
+        649
+      ],
+      "id": "9bd6bc79-d035-46c2-be49-adbe0cf42b10",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=you are payment link generator\ncustomer messaged : {{ $('Split messaging').item.json.message.text }}\n\nyour job is to use get list of product from database tool to get correct data of product that customer selected and use generate stripe esewa solana payment link tool to generate payment link and output it.\n\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        3860,
+        570
+      ],
+      "id": "3ed2514d-aca0-43ef-a127-953dd299e5ae",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.4,
+          "topK": 32,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1140,
+        2190
+      ],
+      "id": "2c700029-c288-45cb-80b5-0cec20f6c6da",
+      "name": "Google Gemini Chat Model16",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "get payment method",
+        "operation": "executeQuery",
+        "query": "SELECT methodType from payment_data where business='{{ $('get page data').item.json.business.id }}'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySqlTool",
+      "typeVersion": 2.4,
+      "position": [
+        -900,
+        2190
+      ],
+      "id": "d7a458c5-b179-477a-a1bd-6b9777743295",
+      "name": "get payment method3",
+      "credentials": {
+        "mySql": {
+          "id": "0tvKzNUeqcKioMoj",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Split messaging').item.json.sender.id }}",
+        "sessionTTL": 86400000,
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        -1020,
+        2190
+      ],
+      "id": "664c31d8-824b-44b9-b1ad-60c98a747e6c",
+      "name": "Redis Chat Memory8",
+      "credentials": {
+        "redis": {
+          "id": "JdMon8acMSYTUpTt",
+          "name": "Redis chat history database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/me/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('get page details form database').item.json.accessToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "recipient",
+              "value": "={\"id\":\"{{ $('Split messaging').item.json.sender.id}} \"} "
+            },
+            {
+              "name": "message",
+              "value": "={\"text\":{{ $json.message }}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        276,
+        2295
+      ],
+      "id": "4c0b2f73-0370-4e5d-a383-88b08eb8c572",
+      "name": "send text message7"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Accessing the message using the expression\nconst message =$input.first().json.output.response.message;\n\n// Returning the stringified message\nreturn [\n  {\n    json: {\n      message: JSON.stringify(message),\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        56,
+        2295
+      ],
+      "id": "ca114eda-ab63-4914-a7ab-44efb6b21f71",
+      "name": "convert to raw json5"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        -540,
+        2192.5
+      ],
+      "id": "6959632b-847d-450c-820d-989872e61c52",
+      "name": "Auto-fixing Output Parser8",
+      "notesInFlow": true,
+      "notes": "hey"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.4,
+          "topK": 32,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -512,
+        2390
+      ],
+      "id": "08b5ee7c-04b2-4450-9e94-0992b0256f35",
+      "name": "Google Gemini Chat Model17",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"response\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"message\": {\n          \"type\": \"string\",\n          \"description\": \"Any message related to the product — including greeting, product description, price, availability, or follow-up questions.\"\n        },\n        \"required\": [\n          \"message\"\n        ]\n      },\n      \n    \"required\": [\n      \"response\"\n    ]\n    }}\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -392,
+        2390
+      ],
+      "id": "fe01fc38-dd6c-423c-b9ef-2e696d446d0e",
+      "name": "Structured Output Parser8"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=  {{ $json.error ? ' solve the error and help in payment' + $json.error : '' }}\nhelp {{ $('save customer to database2').item.json.customer.fullName }} in payment\ncustomer message: {{ $('Split messaging').item.json.message.text }}\n\n\nYou are a helpful AI assistant that helps customers complete their payment. Follow these steps carefully to help customer in payment:\n\n1. Ask the customer for **email**, **shipping address**, and **phone number** required to proceed with payment if they have not provided.\n2. Inform the customer about the **payment methods we accept**. (get the payment metthod from tools) Ask them **which one they would like to use**.\n3. If the customer has not provided all the necessary details, politely ask them to provide the missing ones.\n4. Once the customer provides all the required information:\n    - Use the available tools to generate payment link, including shipping details,product information.\n    - Generate a **payment link** use tools to generate payment link.\n    - Send a response that includes:\n        - A short confirmation message with a summary of the order and total cost.\n          \n    \n\n**Important**:\n- Never assume the order details. Always use the tools provided to get accurate product and pricing information.\n- Never generate a payment link until all required information is received from the customer.\n- Be friendly and guide the customer if they are unsure.\n\nRespond only in the schema format required by the system.\n\n{\n\"output\": \n{\n\"response\": \n{\n\"message\": \n\"To proceed with your payment, please provide your email address, shipping address, and phone number. We accept payments via Stripe, Esewa, and Solana Pay. Which method would you prefer?\"\n}\n}\n\n{\n\"output\": \n{\n\"response\": \n{\n\"message\": \n\"you payment link for ** method ** is **link from tool**\"\n}\n}\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a helpful assistant help customer in asking payment details and sending payment link "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -928,
+        1970
+      ],
+      "id": "717740c8-95e4-450d-a487-fd75b7771249",
+      "name": "help customer in payment and generate payment link1",
+      "alwaysOutputData": true,
+      "retryOnFail": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "toolDescription": "use this tool when the customer asks to see, browse, view, or search for products, or mentions any product name (e.g. ‘jacket’, ‘tshirt’, ‘pants’). It returns a list of available products including name, price, and stock status. Use this to show product options or help customers pick items to order.\n\n",
+        "url": "=http://localhost:3000/product/{{ $('Split messaging').item.json.recipient.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -780,
+        2190
+      ],
+      "id": "d1dfeef6-453d-4db5-95c2-57a372a9c67b",
+      "name": "get list of cloth from database1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e18c0442-f054-426d-8153-e3b1775ee00f",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "54677d89-1e68-47ae-a0d2-489869f56713",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -164,
+        2095
+      ],
+      "id": "aba0ae08-b900-4bcf-b061-49c129dc6860",
+      "name": "check if response generated or not2"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        56,
+        2095
+      ],
+      "id": "d6f0aa30-c1f6-4903-ae9d-d468db464d7b",
+      "name": "Wait for 2 second and ask again2",
+      "webhookId": "1a56c279-a845-4511-9806-c8457d4e207a"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Generates a Stripe,esewa and solana payment link for the customer using their order details, shipping address, and contact information.\n\n{\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+1234567890\",\n  \"shipping_address\": \"123 Main Street, Cityname, Country\",\n  \"order\": [\n    {\n      \"product_id\": \"0i1j2k3l-4m5n-6o7p-8q9r-0s1t2u3v4w5x\",\n       \"product_name\":\"Jogger Pants\"\n      \"quantity\": 2,\n      \"size\": \"M\",\n      \"color\": \"Black\"\n    },\n    {\n      \"product_id\": \"prod_xyz789\",\n      \"quantity\": 1,\n      \"size\": \"L\",\n      \"color\": \"Red\"\n    }\n  ]\n}\n",
+        "url": "=http://localhost:3000/paymentlink/{{ $('Split messaging').item.json.sender.id }}/{{ $('Split messaging').item.json.recipient.id }}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=orders",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', `To generate a payment:\nEnsure these fields are provided by the customer:\nEmail (string): Customer's valid email address.\nPhone (string): Customer's phone number.\nShipping Address (string): Full delivery address.\nOrder (array of at least one product): Each product in the order must include:\nproduct_id (string): UUID of the selected product.\nproduct_name (string): name of the selected product. \nquantity (integer): Number of units to purchase.\nsize (string): Chosen size (e.g., XS, S, M, L, XL).\ncolor (string): Chosen color.\nOnly generate a payment_link if all the above fields are available and valid.\nsend a data in given format\n{\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+1234567890\",\n  \"shipping_address\": \"123 Main Street, Cityname, Country\",\n  \"order\": [\n    {\n      \"product_id\": \"0i1j2k3l-4m5n-6o7p-8q9r-0s1t2u3v4w5x\",\n       \"product_name\":\"Jogger Pants\"\n      \"quantity\": 2,\n      \"size\": \"M\",\n      \"color\": \"Black\"\n    },\n    {\n      \"product_id\": \"prod_xyz789\",\n      \"quantity\": 1,\n      \"size\": \"L\",\n      \"color\": \"Red\"\n    }\n  ]\n}\n`, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -660,
+        2190
+      ],
+      "id": "660d490a-4f64-4156-8afd-c27be59710cd",
+      "name": "generate stripe,esewa,solana payment link"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=  {{ $json.error ? ' solve the error and help in payment' + $json.error : '' }}\ncollet payment details from {{ $('save customer to database2').item.json.customer.fullName }}. for payment.\ncustomer message {{ $('Split messaging').item.json.message.text }}\nyour job is to collect shipping address,email, phone no of the customer, ask which payment method does customer want to use for payment payment method are ({{ $json.methodTypes }}).\n{\n\"output\": \n{\n\"response\": \n{\n\"message\": \n\"To proceed with your payment, please provide your email address, shipping address, and phone number.\"\n}\n}\n\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a helpful assistant help customer in asking payment details and sending payment link "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        3860,
+        -30
+      ],
+      "id": "009cd67d-503d-4be9-bf4e-8280a52ff1fc",
+      "name": "collect details for payment",
+      "alwaysOutputData": true,
+      "retryOnFail": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT GROUP_CONCAT(methodType) AS methodTypes\nFROM payment_data\nWHERE business = '{{ $('get page data').item.json.business.id }}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        2274,
+        649
+      ],
+      "id": "9f78b558-6f79-4557-8726-8f92e23f640c",
+      "name": "MySQL",
+      "credentials": {
+        "mySql": {
+          "id": "0tvKzNUeqcKioMoj",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        4188,
+        792.5
+      ],
+      "id": "4d1c3307-bc4c-495b-b19a-09a9dce1eade",
+      "name": "Auto-fixing Output Parser9",
+      "notesInFlow": true,
+      "notes": "hey"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.4,
+          "topK": 32,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        4216,
+        990
+      ],
+      "id": "fa394493-18cb-4a24-9e9e-b3047595ed5e",
+      "name": "Google Gemini Chat Model18",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"paymentButton\":[\n    {\n      \"method\":\"stripe\", \"url\":\"https://checkout.stripe.com/c/pay/cs_test_a1RhjJu7hONRQYVx6ZMOoM9ufq5j1l7N4mr0inBiMA4WOCfqDuRs6aAhFs#fidkdWxOYHwnPyd1blpxYHZxWjA0V05BT0g3SFFVNTFdPHR9T2ZKVF9DSH19UkN0cX9QV2ZrNVRfR31%2FbVFCandQVn1udTBmbV0xNmxkXWl8d2s3bWJVcWBXbTZIakBDS1JcN1Z3TDZUSFF0NTU8QjZuQTx%2FNScpJ2N3amhWYHdzYHcnP3F3cGApJ2lkfGpwcVF8dWAnPyd2bGtiaWBabHFgaCcpJ2BrZGdpYFVpZGZgbWppYWB3dic%2FcXdwYHgl\"\n\n    },\n    {\n      \"method\":\"esewa\", \"url\":\"https://rc-epay.esewa.com.np/epay?bookingId=vofjVU4PUkQqepKVd2IwgQ%3D%3D\"\n    },\n    {\n      \"method\":\"solana\", \"url\":\"http://localhost:5173/solana/c40da574-aecd-4029-988c-b4ddfcb46329/7167191503357319/b8600b04-2650-11f0-b2d9-801844f3db4b\"\n    }\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        4336,
+        990
+      ],
+      "id": "6176a6a1-d3e4-449d-93d6-f23f5db17d25",
+      "name": "Structured Output Parser9"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "get payment method that you accept",
+        "operation": "executeQuery",
+        "query": "SELECT methodType from payment_data where business='{{ $('get page data').item.json.business.id }}'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySqlTool",
+      "typeVersion": 2.4,
+      "position": [
+        -1140,
+        1730
+      ],
+      "id": "d79eace3-ae70-4b64-8fbf-5072b64a6ebf",
+      "name": "get payment method4",
+      "credentials": {
+        "mySql": {
+          "id": "0tvKzNUeqcKioMoj",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Split messaging').item.json.sender.id }}",
+        "sessionTTL": 86400000,
+        "contextWindowLength": 100
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        3828,
+        790
+      ],
+      "id": "4da3c160-4f69-4179-84e6-3ffc50ffdfae",
+      "name": "Redis Chat Memory9",
+      "credentials": {
+        "redis": {
+          "id": "JdMon8acMSYTUpTt",
+          "name": "Redis chat history database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.4,
+          "topK": 32,
+          "topP": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        3708,
+        790
+      ],
+      "id": "ff9229ad-9274-4670-8b2f-2141358e8f41",
+      "name": "Google Gemini Chat Model15",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "v3IQfPzqCO7tjmF0",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Generates a Stripe,esewa and solana payment link for the customer using their order details, shipping address, and contact information.\n\n{\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+1234567890\",\n  \"shipping_address\": \"123 Main Street, Cityname, Country\",\n  \"order\": [\n    {\n      \"product_id\": \"0i1j2k3l-4m5n-6o7p-8q9r-0s1t2u3v4w5x\",\n       \"product_name\":\"Jogger Pants\"\n      \"quantity\": 2,\n      \"size\": \"M\",\n      \"color\": \"Black\"\n    },\n    {\n      \"product_id\": \"prod_xyz789\",\n      \"quantity\": 1,\n      \"size\": \"L\",\n      \"color\": \"Red\"\n    }\n  ]\n}\n",
+        "url": "=http://localhost:3000/paymentlink/{{ $('Split messaging').item.json.sender.id }}/{{ $('Split messaging').item.json.recipient.id }}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=orders",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', `To generate a payment:\nEnsure these fields are provided by the customer:\nEmail (string): Customer's valid email address.\nPhone (string): Customer's phone number.\nShipping Address (string): Full delivery address.\nOrder (array of at least one product): Each product in the order must include:\nproduct_id (string): UUID of the selected product.\nproduct_name (string): name of the selected product. \nquantity (integer): Number of units to purchase.\nsize (string): Chosen size (e.g., XS, S, M, L, XL).\ncolor (string): Chosen color.\nOnly generate a payment_link if all the above fields are available and valid.\nsend a data in given format\n{\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+1234567890\",\n  \"shipping_address\": \"123 Main Street, Cityname, Country\",\n  \"order\": [\n    {\n      \"product_id\": \"0i1j2k3l-4m5n-6o7p-8q9r-0s1t2u3v4w5x\",\n       \"product_name\":\"Jogger Pants\"\n      \"quantity\": 2,\n      \"size\": \"M\",\n      \"color\": \"Black\"\n    },\n    {\n      \"product_id\": \"prod_xyz789\",\n      \"quantity\": 1,\n      \"size\": \"L\",\n      \"color\": \"Red\"\n    }\n  ]\n}\n`, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        4068,
+        790
+      ],
+      "id": "ef5dd23b-ef5f-4ae4-9e93-58fd883f3a13",
+      "name": "generate stripe esewa solana payment link"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/me/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('get page data').item.json.accessToken "
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"{{ $('Split messaging').item.json.sender.id }}\"\n  },\n  \"message\": {\n    \"attachment\": {\n      \"type\": \"template\",\n      \"payload\": {\n        \"template_type\": \"button\",\n        \"text\": \"Pay Now with \",\n        \"buttons\": [\n          {\n            \"type\": \"web_url\",\n            \"url\": \"{{ $json.output.paymentButton[0].url }}\",\n            \"title\": \"pay with {{ $json.output.paymentButton[0].method }}\"\n          },\n{\n            \"type\": \"web_url\",\n            \"url\": \"{{ $json.output.paymentButton[1].url }}\",\n            \"title\": \"pay with {{ $json.output.paymentButton[1].method }}\"\n          },\n{\n            \"type\": \"web_url\",\n            \"url\": \"{{ $json.output.paymentButton[2].url }}\",\n            \"title\": \"pay with {{ $json.output.paymentButton[2].method }}\"\n          }\n        ]\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4480,
+        560
+      ],
+      "id": "b012a31c-c71b-4296-ac6f-25194200aecf",
+      "name": "Send Payment Button"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check if the webhook event is page or not": {
+      "main": [
+        [
+          {
+            "node": "split entry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "facebook Webhook": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "check if the webhook event is page or not",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "super agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get business information": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent that response general message question",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get customer past and current order": {
+      "ai_tool": [
+        [
+          {
+            "node": "super agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "super agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "super agent": {
+      "main": [
+        [
+          {
+            "node": "if product",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "check if payment button available or not",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        []
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate stripe payment link": {
+      "ai_tool": [
+        [
+          {
+            "node": "super agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send text message": {
+      "main": [
+        []
+      ]
+    },
+    "convert to raw json": {
+      "main": [
+        [
+          {
+            "node": "send text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If message": {
+      "main": [
+        [
+          {
+            "node": "convert to raw json",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "if product": {
+      "main": [
+        [
+          {
+            "node": "Split Out2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "sending payment button": {
+      "main": [
+        []
+      ]
+    },
+    "Split Out2": {
+      "main": [
+        [
+          {
+            "node": "send text message1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "send image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send text message1": {
+      "main": [
+        []
+      ]
+    },
+    "send image": {
+      "main": [
+        []
+      ]
+    },
+    "check if payment button available or not": {
+      "main": [
+        [
+          {
+            "node": "sending payment button",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "split entry": {
+      "main": [
+        [
+          {
+            "node": "Split messaging",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split messaging": {
+      "main": [
+        [
+          {
+            "node": "check if attachment or not from customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get page data": {
+      "main": [
+        [
+          {
+            "node": "save customer to database2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get payment method": {
+      "ai_tool": [
+        [
+          {
+            "node": "super agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "ai_tool": [
+        []
+      ]
+    },
+    "get list of cloth": {
+      "ai_tool": [
+        [
+          {
+            "node": "super agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "sendMessage": {
+      "ai_tool": [
+        []
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Auto-fixing Output Parser1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser1": {
+      "ai_outputParser": [
+        []
+      ]
+    },
+    "Structured Output Parser3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser3",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent that response general message question",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "convert to raw json1": {
+      "main": [
+        [
+          {
+            "node": "send text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Auto-fixing Output Parser4",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser4": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser4",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser4": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "show product to customer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send image1": {
+      "main": [
+        []
+      ]
+    },
+    "send text message3": {
+      "main": [
+        [
+          {
+            "node": "send image1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser5": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser5",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser5": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "take order form customer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "convert to raw json2": {
+      "main": [
+        [
+          {
+            "node": "send text message5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "collect details for payment",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Auto-fixing Output Parser3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model6": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent that response general message question",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model7": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "take order form customer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model8": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Auto-fixing Output Parser5",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model9": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "show product to customer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent that response general message question",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "take order form customer",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "show product to customer",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get list of cloth1": {
+      "ai_tool": [
+        [
+          {
+            "node": "show product to customer",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get payment method1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent that response general message question",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get customer past and current order1": {
+      "ai_tool": [
+        [
+          {
+            "node": "take order form customer",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory5": {
+      "ai_memory": [
+        [
+          {
+            "node": "collect details for payment",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "convert to raw json3": {
+      "main": [
+        [
+          {
+            "node": "send text message6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model12": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Auto-fixing Output Parser6",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser6": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser6",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser6": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "collect details for payment",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "order record2": {
+      "ai_tool": [
+        []
+      ]
+    },
+    "order record3": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent that response general message question",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model10": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Auto-fixing Output Parser2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser2",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory4": {
+      "ai_memory": [
+        [
+          {
+            "node": "intent detection ai agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model11": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "intent detection ai agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "intent detection ai agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "convert to raw json4": {
+      "main": [
+        [
+          {
+            "node": "send text message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check if attachment or not from customer": {
+      "main": [
+        [
+          {
+            "node": "get page details form database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get page details form database": {
+      "main": [
+        [
+          {
+            "node": "get page data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "save customer to database2": {
+      "main": [
+        [
+          {
+            "node": "save customer to database success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "save customer to database success": {
+      "main": [
+        [
+          {
+            "node": "intent detection ai agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "intent detection ai agent": {
+      "main": [
+        [
+          {
+            "node": "check response generated or not",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check response generated or not": {
+      "main": [
+        [
+          {
+            "node": "if not wait for 2 second and ask again to generate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch according to intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if not wait for 2 second and ask again to generate": {
+      "main": [
+        [
+          {
+            "node": "intent detection ai agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch according to intent": {
+      "main": [
+        [
+          {
+            "node": "AI Agent that response general message question",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "show product to customer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "take order form customer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MySQL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent that response general message question",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent that response general message question": {
+      "main": [
+        [
+          {
+            "node": "check response generate or not",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "take order form customer": {
+      "main": [
+        [
+          {
+            "node": "check if response generated or not1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "show product to customer": {
+      "main": [
+        [
+          {
+            "node": "Split Out the response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "convert to raw json4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get list of cloth from database": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check response generate or not": {
+      "main": [
+        [
+          {
+            "node": "Wait 2 second and ask again to generate a response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "convert to raw json1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2 second and ask again to generate a response": {
+      "main": [
+        [
+          {
+            "node": "AI Agent that response general message question",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check if response generated or not": {
+      "main": [
+        [
+          {
+            "node": "Wait for 2 second and ask again",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "convert to raw json3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for 2 second and ask again": {
+      "main": [
+        [
+          {
+            "node": "collect details for payment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out the response": {
+      "main": [
+        [
+          {
+            "node": "send text message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check if response generated or not1": {
+      "main": [
+        [
+          {
+            "node": "Wait for 2 second and ask again1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "convert to raw json2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for 2 second and ask again1": {
+      "main": [
+        [
+          {
+            "node": "take order form customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model13": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "intent detection ai agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory6": {
+      "ai_memory": [
+        [
+          {
+            "node": "intent detection ai agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser7": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "intent detection ai agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model14": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Auto-fixing Output Parser7",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser7": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser7",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "intent detection ai agent1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "collect details for payment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model16": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "help customer in payment and generate payment link1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get payment method3": {
+      "ai_tool": [
+        [
+          {
+            "node": "help customer in payment and generate payment link1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory8": {
+      "ai_memory": [
+        [
+          {
+            "node": "help customer in payment and generate payment link1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "convert to raw json5": {
+      "main": [
+        [
+          {
+            "node": "send text message7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser8": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "help customer in payment and generate payment link1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model17": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Auto-fixing Output Parser8",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser8": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser8",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "help customer in payment and generate payment link1": {
+      "main": [
+        [
+          {
+            "node": "check if response generated or not2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get list of cloth from database1": {
+      "ai_tool": [
+        [
+          {
+            "node": "help customer in payment and generate payment link1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check if response generated or not2": {
+      "main": [
+        [
+          {
+            "node": "Wait for 2 second and ask again2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "convert to raw json5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for 2 second and ask again2": {
+      "main": [
+        [
+          {
+            "node": "help customer in payment and generate payment link1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate stripe,esewa,solana payment link": {
+      "ai_tool": [
+        [
+          {
+            "node": "help customer in payment and generate payment link1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "collect details for payment": {
+      "main": [
+        [
+          {
+            "node": "check if response generated or not",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MySQL": {
+      "main": [
+        [
+          {
+            "node": "intent detection ai agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model18": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Auto-fixing Output Parser9",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser9": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser9",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser9": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get payment method4": {
+      "ai_tool": [
+        []
+      ]
+    },
+    "Redis Chat Memory9": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model15": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate stripe esewa solana payment link": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send Payment Button",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "94ebba86-cbad-4662-8669-6a468c8d35db",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "520b2025d3e00572af5d55e8006b754a1d00333adb783fa4ede95c17d3d0662a"
+  },
+  "id": "xO0yBboYp8tFohJr",
+  "tags": []
+}
