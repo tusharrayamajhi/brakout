@@ -1,7 +1,6 @@
 import { MessageServices } from 'src/services/message.services';
 import { Body, Controller, Get, HttpException, HttpStatus, Param, Post } from "@nestjs/common";
 import { customerService } from 'src/services/customer.services';
-import { ResponseServices } from 'src/services/response.services';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SocialPage } from 'src/entities/socialmedia.entities';
 import { Repository, Equal } from 'typeorm';
@@ -16,7 +15,6 @@ export class N8NController{
     constructor(
         private readonly messageService:MessageServices,
         private readonly customerService:customerService,
-        private readonly responseService:ResponseServices,
         private readonly stripeService:StripeService,
         @InjectRepository(SocialPage) private readonly pageRepo: Repository<SocialPage>,
         @InjectRepository(Customer) private readonly customerRepo: Repository<Customer>,
@@ -50,10 +48,6 @@ export class N8NController{
         }
     }
 
-    @Post("/message/:id/:pageId")
-    async sendMessageToCustomer(@Param('id') id:string,@Param('pageId') pageId:string,@Body('textMessage') textMessage:string){
-        return await this.responseService.sendTextResponseToCustomer({senderId:id,pageId:pageId,textMessage:textMessage})
-    }
 
     @Get("/business/:pageId")
     async getBusinessData(@Param('pageId') pageId:string){
@@ -81,103 +75,6 @@ export class N8NController{
         return await this.messageService.saveMessage({message:message,senderId:id})
     }
 
-    // @Post('send/product/:id/:pageId')
-    // async sendproduct(@Body() body:any,@Param('id') id:string,@Param('pageId') pageId:string){
-    //     console.log(id);
-    //     console.log(pageId);
-    //     console.log(body);
-    
-    //     // Parse the stringified JSON message from body
-    //     let data;
-    //     try {
-    //         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment
-    //         data = JSON.parse(body.message);
-    //     } catch (error) {
-    //         console.error("Error parsing JSON:", error);
-    //         return;
-    //     }
-    //     console.log(data);
-    
-    //     // Check if there are images in the parsed data
-    //     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    //     if (data.image) {
-    //         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    //         for (const img of data.image) {  // Corrected loop here
-    //             console.log(img)
-    //             // Ensure you access the correct properties from img
-    //             const attachment = {
-    //                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    //                 type: img?.image_type,
-    //                 payload: {
-    //                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    //                     url: img?.imageUrl
-    //                 }
-    //             };
-    //             await Promise.all([
-    //                 this.responseService.sendAttachmentResponseToCustomer({
-    //                     attachment: attachment,
-    //                     senderId: id,
-    //                     pageId: pageId
-    //                 }),
-    //                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    //                 this.responseService.sendTextResponseToCustomer({pageId:pageId,senderId:id,textMessage:img?.about_product})
-    //             ])
-    //             // Send the attachment response to the customer
-    //             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    //         }
-    //     }
-    //     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    //     if(data.message){
-    //         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-    //         await this.responseService.sendTextResponseToCustomer({pageId:pageId,senderId:id,textMessage:data?.message})
-    //     }
-    //     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    //     return data
-    // }
-
-
-    @Post('send/product/:id/:pageId')
-    async sendproduct(@Body() body:any,@Param('id') id:string,@Param('pageId') pageId:string){
-    
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        if (body.response) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            for (const img of body.response.product) {  // Corrected loop here
-                // Ensure you access the correct properties from img
-                const attachment = {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-                    type: img?.image_type,
-                    payload: {
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-                        url: img?.imageUrl
-                    }
-                };
-                await Promise.all([
-                    this.responseService.sendAttachmentResponseToCustomer({
-                        attachment: attachment,
-                        senderId: id,
-                        pageId: pageId
-                    }),
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-                    this.responseService.sendTextResponseToCustomer({pageId:pageId,senderId:id,textMessage:img?.aboutimage})
-                ])
-                // Send the attachment response to the customer
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-            }
-        }
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        if(body.response.message){
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-            await this.responseService.sendTextResponseToCustomer({pageId:pageId,senderId:id,textMessage:body.response.message})
-        }
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        if(body.response.PaymentButton){
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-            await this.responseService.sendPaymentLink({senderId:id,link:body.response.url,pageId:pageId})
-        }
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-        return {response:body.response,message:"successfully sent",status:HttpStatus.OK}
-    }
 
     @Get("/order/:id")
     async getCustomerOrderData(@Param('id') id:string){

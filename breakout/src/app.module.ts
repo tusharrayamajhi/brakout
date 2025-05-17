@@ -20,19 +20,10 @@ import { User } from './entities/user.entities';
 import { SocialPage } from './entities/socialmedia.entities';
 import { FacebookService } from './services/facebook.services';
 import { FacebookController } from './auth/facebook.auth';
-import { WebhookController } from './controllers/webhook.controllers';
 import { customerService } from './services/customer.services';
-import { ResponseServices } from './services/response.services';
 import { MessageServices } from './services/message.services';
 import { CacheModule } from '@nestjs/cache-manager';
-import { ModelService } from './services/mode.services';
-import { SuperAgent } from './agent/super.agent';
-import { PromptServices } from './services/prompt.services';
 import {EventEmitterModule} from "@nestjs/event-emitter"
-import { OutputParserService } from './services/outputParser.services';
-import { GeneralMessageEvent } from './events/generalMessage.events';
-import { productSuggestionAgent } from './events/product.events';
-import { OrderAgent } from './events/orderAgent.events';
 import { BusinessController } from './controllers/business.controllers';
 import { BusinessService } from './services/business.services';
 import { N8NController } from './controllers/n8n';
@@ -107,7 +98,7 @@ import { SolanaPayService } from './services/solana.services';
     }),
 
   ],
-  controllers: [AuthController,PaymentDataController,N8NController,SolanaPayController,CustomerController,FacebookController,WebhookController,BusinessController,ProductController,OrdersController],
-  providers: [AuthTokenGuard,SolanaPayService,OrdersService,PaymentConnectService,ProductService,StripeService,BusinessService,ModelService,OrderAgent,SuperAgent,productSuggestionAgent,GeneralMessageEvent,MessageServices,OutputParserService,PromptServices,AuthService,FacebookService,customerService,ResponseServices],
+  controllers: [AuthController,PaymentDataController,N8NController,SolanaPayController,CustomerController,FacebookController,BusinessController,ProductController,OrdersController],
+  providers: [AuthTokenGuard,SolanaPayService,OrdersService,PaymentConnectService,ProductService,StripeService,BusinessService,MessageServices,AuthService,FacebookService,customerService],
 })
 export class AppModule {}
