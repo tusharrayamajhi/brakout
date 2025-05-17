@@ -9,7 +9,7 @@ const GoogleAuthButton = () => {
     /* global google */
     // @ts-ignore
     google.accounts.id.initialize({
-      client_id: '611314394373-9798ed04r97o4vj3mocii2orqbvh7em0.apps.googleusercontent.com',
+      client_id: '6113143rcontent.com',
       callback: async (response: any) => {
         try {
           const { data } = await axios.post('http://localhost:3000/auth/google', {

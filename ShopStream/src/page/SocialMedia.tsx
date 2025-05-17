@@ -102,7 +102,7 @@ const SocialMediaPage = () => {
 
   // Facebook OAuth connection
   const connectFacebook = () => {
-    const FB_APP_ID = "1160645722385502";
+    const FB_APP_ID = "11606";
     const REDIRECT_URI = "http://localhost:5173/social-media";
     const scopes = [
       "pages_show_list",

@@ -106,7 +106,7 @@ const fetchPayments = async () => {
 };
 
   const connectStripe = () => {
-    const clientId = "ca_SFZNegQBVAu8cUC6AlC8RYeEHqiGp8If";
+    const clientId = "ca_SFZNeEHqiGp8If";
     const redirectUri = "http://localhost:5173/payment";
     const scope = "read_write";
     const authUrl = `https://connect.stripe.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
