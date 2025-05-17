@@ -279,9 +279,7 @@ const OrderDetails = () => {
       }
       console.log(order.payment.transaction_uuid);
       if (order.payment.payment_method == "stripe") {
-        const stripe = new Stripe(
-          ""
-        );
+        const stripe = new Stripe('');
         const session = await stripe.checkout.sessions.retrieve(
           order.payment.transaction_uuid
         );
